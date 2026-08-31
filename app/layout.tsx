@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./shore-excursions.css";
 import "./launch-overrides.css";
+import "./methodology.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shoreexcursionsguide.com";
+const siteUrl = "https://shoreexcursionsguide.com";
 const siteDescription =
   "Cruise-port guides with six curated shore excursion ideas, port logistics, short history and important places to visit.";
 
