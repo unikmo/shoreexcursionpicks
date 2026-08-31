@@ -9,7 +9,6 @@ type NearbyPortItem = {
   country: string;
   latitude: number;
   longitude: number;
-  topPick: string;
 };
 
 type NearbyPortGuidesProps = {
@@ -95,16 +94,16 @@ export function NearbyPortGuides({ currentSlug, ports }: NearbyPortGuidesProps) 
     <section className="cse-nearby" aria-labelledby="nearby-port-title">
       <div className="cse-nearby-heading">
         <div>
-          <p className="cse-eyebrow">Nearby port guides</p>
-          <h2 id="nearby-port-title">What else is close to {origin.label}?</h2>
-          <p>Distances are approximate and used only to surface nearby cruise-port guides.</p>
+          <p className="cse-eyebrow">Near this port</p>
+          <h2 id="nearby-port-title">Nearby cruise-port guides.</h2>
+          <p>Use your location or choose a port. This changes navigation only; each port still shows exactly 3 + 3 activities.</p>
         </div>
         <div className="cse-nearby-controls">
           <button type="button" onClick={useMyLocation} disabled={status === "locating"}>
             {status === "locating" ? "Locating…" : "Use my location"}
           </button>
           <label>
-            <span>Or choose an area</span>
+            <span>Or choose a port</span>
             <select value={origin.slug ?? ""} onChange={(event) => choosePort(event.target.value)}>
               <option value="" disabled>Select a port</option>
               {ports.map((port) => (
@@ -124,7 +123,6 @@ export function NearbyPortGuides({ currentSlug, ports }: NearbyPortGuidesProps) 
           <Link href={`/ports/${port.slug}`} key={port.slug}>
             <span>{Math.round(port.distance)} km away · {port.country}</span>
             <strong>{port.name}</strong>
-            <small>Top pick: {port.topPick}</small>
             <b>Open port guide →</b>
           </Link>
         ))}
