@@ -1,0 +1,129 @@
+.cse-methodology-hero,
+.cse-methodology-grid,
+.cse-methodology-note {
+  width: min(var(--cse-content), calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.cse-methodology-hero {
+  max-width: 840px;
+  padding: 72px 0 48px;
+  text-align: center;
+}
+
+.cse-methodology-hero h1,
+.cse-methodology-note h2 {
+  margin: 0;
+  color: var(--cse-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  line-height: 1.01;
+  letter-spacing: -.048em;
+  text-wrap: balance;
+}
+
+.cse-methodology-hero h1 {
+  font-size: clamp(44px, 5vw, 66px);
+}
+
+.cse-methodology-hero > p:last-child {
+  max-width: 720px;
+  margin: 22px auto 0;
+  color: var(--cse-muted);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.cse-methodology-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding-bottom: 64px;
+}
+
+.cse-methodology-grid article {
+  min-height: 240px;
+  padding: 25px;
+  border: 1px solid var(--cse-line);
+  border-radius: 20px;
+  background: var(--cse-paper);
+}
+
+.cse-methodology-grid article > span {
+  color: var(--cse-teal);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.cse-methodology-grid h2 {
+  margin: 29px 0 11px;
+  color: var(--cse-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  line-height: 1.08;
+  letter-spacing: -.03em;
+}
+
+.cse-methodology-grid p {
+  margin: 0;
+  color: var(--cse-muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.cse-methodology-note {
+  display: grid;
+  grid-template-columns: .8fr 1.2fr;
+  gap: 58px;
+  margin-bottom: 60px;
+  padding: 36px;
+  border-radius: 24px;
+  background: var(--cse-sand);
+}
+
+.cse-methodology-note h2 {
+  font-size: clamp(30px, 3.2vw, 43px);
+}
+
+.cse-methodology-note > p {
+  margin: 2px 0 0;
+  color: #526568;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+@media (max-width: 850px) {
+  .cse-methodology-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cse-methodology-note {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 620px) {
+  .cse-methodology-hero,
+  .cse-methodology-grid,
+  .cse-methodology-note {
+    width: min(100% - 28px, var(--cse-content));
+  }
+
+  .cse-methodology-hero {
+    padding-top: 52px;
+  }
+
+  .cse-methodology-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cse-methodology-grid article {
+    min-height: 0;
+  }
+
+  .cse-methodology-note {
+    padding: 28px 23px;
+  }
+}
