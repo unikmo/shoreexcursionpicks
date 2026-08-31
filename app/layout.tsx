@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./shore-excursions.css";
+import "./launch-overrides.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shoreexcursionpicks.com";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shoreexcursionsguide.com";
+const siteDescription =
+  "Cruise-port guides with six curated shore excursion ideas, port logistics, short history and important places to visit.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -10,13 +13,11 @@ export const metadata: Metadata = {
     default: "Shore Excursion Picks",
     template: "%s | Shore Excursion Picks",
   },
-  description:
-    "Find three standout independent shore excursions and three worthwhile alternatives for 60 major cruise ports.",
+  description: siteDescription,
   alternates: { canonical: "/" },
   openGraph: {
     title: "Shore Excursion Picks",
-    description:
-      "The best shore excursions—without endless searching.",
+    description: "The best shore excursions—without endless searching.",
     url: siteUrl,
     siteName: "Shore Excursion Picks",
     type: "website",
@@ -25,9 +26,21 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Shore Excursion Picks",
+    url: siteUrl,
+    description: siteDescription,
+    inLanguage: "en",
+  };
+
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
+        {children}
+      </body>
     </html>
   );
 }
