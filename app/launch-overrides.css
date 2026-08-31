@@ -1,0 +1,638 @@
+:root {
+  --cse-content: 1040px;
+}
+
+/* Keep the experience focused instead of stretching content edge to edge. */
+.cse-nav,
+.cse-home-hero,
+.cse-section,
+.cse-footer,
+.cse-directory-hero,
+.cse-region-nav,
+.cse-region-directory,
+.cse-coverage-note,
+.cse-breadcrumbs,
+.cse-port-intro,
+.cse-first-time-pick,
+.cse-niche-section,
+.cse-compact-explainer,
+.cse-next-port,
+.cse-port-finder-section {
+  width: min(var(--cse-content), calc(100% - 40px));
+}
+
+.cse-home-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(340px, .78fr);
+  gap: 44px;
+  padding: 42px 0 62px;
+}
+
+.cse-home-hero h1,
+.cse-directory-hero h1 {
+  font-size: clamp(44px, 5vw, 66px);
+}
+
+.cse-directory-hero {
+  padding: 52px 0 38px;
+}
+
+.cse-section {
+  padding-top: 78px;
+  padding-bottom: 78px;
+}
+
+.cse-how {
+  width: 100%;
+  max-width: none;
+  padding-inline: max(20px, calc((100% - var(--cse-content)) / 2));
+}
+
+.cse-editorial-card,
+.cse-editorial-visual,
+.cse-featured-port,
+.cse-featured-port-image,
+.cse-port-intro-media,
+.cse-activity-card,
+.cse-activity-card-media {
+  border-radius: 22px;
+}
+
+.cse-featured-port-image,
+.cse-activity-card-media {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Compact destination hero: title first, image immediately visible. */
+.cse-port-hero-compact,
+.cse-port-context,
+.cse-port-logistics,
+.cse-port-faq,
+.cse-nearby,
+.cse-partner-note {
+  width: min(var(--cse-content), calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.cse-port-hero-compact {
+  margin-top: 22px;
+  padding: 28px;
+  border: 1px solid rgba(17, 49, 54, .09);
+  border-radius: 30px;
+}
+
+.cse-port-hero-copy {
+  max-width: 820px;
+  padding: 5px 5px 24px;
+}
+
+.cse-port-hero-copy .cse-eyebrow {
+  margin-bottom: 12px;
+}
+
+.cse-port-hero-copy h1,
+.cse-port-logistics h2,
+.cse-port-faq h2,
+.cse-nearby h2,
+.cse-port-context h2 {
+  margin: 0;
+  color: var(--cse-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+
+.cse-port-hero-copy h1 {
+  font-size: clamp(43px, 5.2vw, 68px);
+  line-height: 1;
+}
+
+.cse-port-hero-copy .cse-lead {
+  max-width: 760px;
+  margin-top: 16px;
+  font-size: clamp(17px, 1.8vw, 20px);
+}
+
+.cse-port-hero-media {
+  position: relative;
+  min-height: 430px;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--cse-navy);
+  box-shadow: 0 20px 50px rgba(18, 48, 53, .13);
+}
+
+.cse-port-hero-media > img {
+  width: 100%;
+  height: 100%;
+  min-height: 430px;
+  display: block;
+  object-fit: cover;
+}
+
+.cse-port-hero-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 48%, rgba(8, 31, 35, .72));
+}
+
+.cse-port-hero-caption {
+  position: absolute;
+  z-index: 2;
+  right: 22px;
+  bottom: 20px;
+  left: 22px;
+  display: flex;
+  align-items: baseline;
+  gap: 15px;
+  color: white;
+}
+
+.cse-port-hero-caption strong {
+  flex: 0 0 auto;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.cse-port-hero-caption span {
+  max-width: 720px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cse-port-hero-media .cse-port-image-credit {
+  position: absolute;
+  z-index: 3;
+  top: 14px;
+  right: 14px;
+  padding: 7px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .9);
+  color: #536669;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.cse-port-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 18px 4px 1px;
+  color: #607174;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.cse-port-hero-actions span {
+  padding: 7px 10px;
+  border: 1px solid rgba(18, 51, 56, .13);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .6);
+}
+
+.cse-port-hero-actions a {
+  margin-left: auto;
+  color: var(--cse-teal);
+}
+
+/* Progressive disclosure for local history and places. */
+.cse-port-context {
+  margin-top: 18px;
+}
+
+.cse-port-context details {
+  overflow: hidden;
+  border: 1px solid var(--cse-line);
+  border-radius: 20px;
+  background: rgba(255, 254, 249, .82);
+}
+
+.cse-port-context summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding: 20px 24px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cse-port-context summary::-webkit-details-marker {
+  display: none;
+}
+
+.cse-port-context summary span {
+  display: grid;
+  gap: 4px;
+}
+
+.cse-port-context summary small {
+  color: var(--cse-teal);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.cse-port-context summary strong {
+  color: var(--cse-navy);
+  font-size: 15px;
+}
+
+.cse-port-context summary b {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--cse-navy);
+  color: white;
+  font-size: 19px;
+  transition: transform 160ms ease;
+}
+
+.cse-port-context details[open] summary b {
+  transform: rotate(45deg);
+}
+
+.cse-port-context-body {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 48px;
+  padding: 26px 24px 28px;
+  border-top: 1px solid var(--cse-line);
+}
+
+.cse-port-context h2 {
+  font-size: 24px;
+  line-height: 1.08;
+}
+
+.cse-port-context p {
+  max-width: 650px;
+  margin: 12px 0 0;
+  color: var(--cse-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.cse-port-context ul {
+  display: grid;
+  gap: 8px;
+  margin: 13px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cse-port-context li {
+  padding: 9px 11px;
+  border-radius: 12px;
+  background: var(--cse-mint);
+  color: #3d595d;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+/* Port pages should feel specific, not padded with generic cruise advice. */
+.cse-picks-section {
+  padding-top: 66px;
+  padding-bottom: 30px;
+}
+
+.cse-picks-section .cse-section-heading {
+  margin-bottom: 28px;
+}
+
+.cse-activity-card {
+  min-height: 310px;
+}
+
+.cse-niche-section {
+  margin-bottom: 38px;
+}
+
+.cse-port-logistics {
+  display: grid;
+  grid-template-columns: .72fr 1.28fr;
+  gap: 54px;
+  margin-top: 12px;
+  padding: 30px 0;
+  border-top: 1px solid var(--cse-line);
+  border-bottom: 1px solid var(--cse-line);
+}
+
+.cse-port-logistics h2 {
+  font-size: clamp(28px, 3vw, 39px);
+  line-height: 1.03;
+}
+
+.cse-port-logistics > p {
+  margin: 2px 0 0;
+  color: var(--cse-muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.cse-port-faq {
+  display: grid;
+  grid-template-columns: .72fr 1.28fr;
+  gap: 54px;
+  padding: 66px 0 24px;
+}
+
+.cse-port-faq h2,
+.cse-nearby h2 {
+  font-size: clamp(30px, 3.4vw, 44px);
+  line-height: 1.03;
+}
+
+.cse-port-faq-list {
+  border-top: 1px solid var(--cse-line);
+}
+
+.cse-port-faq-list details {
+  border-bottom: 1px solid var(--cse-line);
+}
+
+.cse-port-faq-list summary {
+  padding: 18px 2px;
+  cursor: pointer;
+  color: var(--cse-navy);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.cse-port-faq-list p {
+  max-width: 680px;
+  margin: -2px 0 20px;
+  color: var(--cse-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+/* Nearby ports: geolocation is opt-in, with a manual fallback. */
+.cse-nearby {
+  padding: 64px 0 72px;
+}
+
+.cse-nearby-heading {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 36px;
+  margin-bottom: 24px;
+}
+
+.cse-nearby-heading > div:first-child > p:last-child {
+  max-width: 600px;
+  margin: 13px 0 0;
+  color: var(--cse-muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.cse-nearby-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.cse-nearby-controls button,
+.cse-nearby-controls select {
+  min-height: 42px;
+  border: 1px solid #b9c8c4;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .84);
+  color: var(--cse-navy);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cse-nearby-controls button {
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.cse-nearby-controls button:hover {
+  border-color: var(--cse-teal);
+}
+
+.cse-nearby-controls button:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+
+.cse-nearby-controls label {
+  display: grid;
+  gap: 5px;
+}
+
+.cse-nearby-controls label span {
+  color: var(--cse-muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.cse-nearby-controls select {
+  max-width: 215px;
+  padding: 0 34px 0 11px;
+}
+
+.cse-nearby-status {
+  margin: -6px 0 16px;
+  color: #7b5b36;
+  font-size: 12px;
+}
+
+.cse-nearby-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.cse-nearby-grid a {
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border: 1px solid var(--cse-line);
+  border-radius: 18px;
+  background: var(--cse-paper);
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.cse-nearby-grid a:hover {
+  transform: translateY(-3px);
+  border-color: #99b6b0;
+}
+
+.cse-nearby-grid span {
+  color: var(--cse-teal);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.cse-nearby-grid strong {
+  margin-top: 12px;
+  color: var(--cse-navy);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+.cse-nearby-grid small {
+  margin-top: 9px;
+  color: var(--cse-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.cse-nearby-grid b {
+  margin-top: auto;
+  padding-top: 17px;
+  color: var(--cse-teal);
+  font-size: 11px;
+}
+
+.cse-partner-note {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px 22px;
+  align-items: center;
+  margin-bottom: 44px;
+  padding: 17px 20px;
+  border-radius: 16px;
+  background: var(--cse-sand);
+  color: #506366;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.cse-partner-note strong {
+  color: var(--cse-navy);
+}
+
+.cse-partner-note small {
+  color: #6d797b;
+  font-size: 10px;
+}
+
+@media (max-width: 900px) {
+  .cse-home-hero {
+    grid-template-columns: 1fr;
+    gap: 34px;
+    padding-top: 28px;
+  }
+
+  .cse-port-context-body,
+  .cse-port-logistics,
+  .cse-port-faq,
+  .cse-nearby-heading,
+  .cse-partner-note {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .cse-nearby-controls {
+    justify-content: flex-start;
+  }
+
+  .cse-partner-note {
+    gap: 5px;
+  }
+}
+
+@media (max-width: 720px) {
+  .cse-nav,
+  .cse-home-hero,
+  .cse-section,
+  .cse-footer,
+  .cse-directory-hero,
+  .cse-region-nav,
+  .cse-region-directory,
+  .cse-coverage-note,
+  .cse-breadcrumbs,
+  .cse-port-intro,
+  .cse-first-time-pick,
+  .cse-niche-section,
+  .cse-compact-explainer,
+  .cse-next-port,
+  .cse-port-finder-section,
+  .cse-port-hero-compact,
+  .cse-port-context,
+  .cse-port-logistics,
+  .cse-port-faq,
+  .cse-nearby,
+  .cse-partner-note {
+    width: min(100% - 28px, var(--cse-content));
+  }
+
+  .cse-port-hero-compact {
+    margin-top: 10px;
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .cse-port-hero-copy {
+    padding: 4px 2px 18px;
+  }
+
+  .cse-port-hero-copy h1 {
+    font-size: clamp(38px, 11.5vw, 52px);
+  }
+
+  .cse-port-hero-media,
+  .cse-port-hero-media > img {
+    min-height: 300px;
+  }
+
+  .cse-port-hero-caption {
+    right: 14px;
+    bottom: 13px;
+    left: 14px;
+    display: grid;
+    gap: 5px;
+  }
+
+  .cse-port-hero-actions a {
+    width: 100%;
+    margin: 4px 0 0;
+  }
+
+  .cse-port-context-body {
+    padding: 22px 19px 24px;
+  }
+
+  .cse-picks-section {
+    padding-top: 54px;
+  }
+
+  .cse-port-faq,
+  .cse-nearby {
+    padding-top: 54px;
+  }
+
+  .cse-nearby-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cse-nearby-controls select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .cse-nearby-grid {
+    grid-template-columns: 1fr;
+  }
+}
