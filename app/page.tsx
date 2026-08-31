@@ -7,9 +7,9 @@ import { getPortImage } from "./ports/port-images";
 import { getRegionSlug } from "./ports/region-data";
 
 export const metadata: Metadata = {
-  title: "Curated Independent Shore Excursions",
+  title: "Curated Shore Excursions & Cruise Port Guides",
   description:
-    "Three standout experiences and three worthwhile alternatives, selected for every cruise port.",
+    "Find six curated shore excursion ideas for 60 cruise ports, with port-specific logistics, short history, important places and nearby port guides.",
 };
 
 const featuredSlugs = ["roatan", "cozumel", "barcelona", "santorini", "juneau", "civitavecchia-rome"];
@@ -28,17 +28,36 @@ export default function HomePage() {
     region: port.region,
     topPick: port.topActivities[0].title,
   }));
+  const collectionSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Shore Excursion Picks cruise port guides",
+    url: "https://shoreexcursionsguide.com",
+    description:
+      "Independent cruise-port guides that narrow each destination to six shore excursion ideas and add port-specific context for planning the day.",
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: ports.length,
+      itemListElement: ports.map((port, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: `${port.name} shore excursions`,
+        url: `https://shoreexcursionsguide.com/ports/${port.slug}`,
+      })),
+    },
+  };
 
   return (
     <main className="cse-page">
       <SiteHeader />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }} />
 
       <section className="cse-home-hero">
         <div className="cse-home-hero-copy">
-          <p className="cse-eyebrow">Curated independent shore excursions</p>
+          <p className="cse-eyebrow">Independent cruise port guides</p>
           <h1>Find the best shore excursions for your next port</h1>
           <p className="cse-lead">
-            Three standout experiences and three worthwhile alternatives, selected for every cruise port.
+            Six curated ideas per port—three strong picks and three alternatives—plus local logistics, short history, important places and nearby port guides.
           </p>
           <div className="cse-actions">
             <Link className="cse-button cse-button-primary" href="#port-finder">Choose your port</Link>
@@ -46,8 +65,8 @@ export default function HomePage() {
           </div>
           <ul className="cse-trust-list" aria-label="What to expect">
             <li>{ports.length} major cruise ports</li>
-            <li>3 top picks per port</li>
-            <li>No checkout on this site</li>
+            <li>6 excursion ideas per port</li>
+            <li>Nearby ports by location</li>
           </ul>
         </div>
 
@@ -101,10 +120,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="cse-model-strip" aria-label="Affiliate business model">
-        <strong>The best shore excursions—without endless searching.</strong>
-        <span>Check the live options on Viator.</span>
-        <span>Book and get support there.</span>
+      <section className="cse-model-strip" aria-label="How the guide works">
+        <strong>Port first.</strong>
+        <span>Local context and six ideas.</span>
+        <span>Live booking details on Viator.</span>
       </section>
 
       <section className="cse-section">
@@ -113,7 +132,7 @@ export default function HomePage() {
             <p className="cse-eyebrow">Six featured ports · not the full catalogue</p>
             <h2>Popular ports to start with.</h2>
           </div>
-          <Link className="cse-text-link" href="/ports">Browse all 60 ports →</Link>
+          <Link className="cse-text-link" href="/ports">Browse all {ports.length} ports →</Link>
         </div>
         <div className="cse-featured-grid">
           {featuredPorts.map((port) => (
@@ -143,23 +162,23 @@ export default function HomePage() {
           </div>
         </div>
         <div className="cse-step-grid">
-          <article><span>1</span><h3>Choose the port</h3><p>Every guide starts with the realities and distinctive experiences of that specific call.</p></article>
-          <article><span>2</span><h3>Review three strong options</h3><p>The dominant section contains only the activities most likely to define the day.</p></article>
-          <article><span>3</span><h3>Check live tours</h3><p>Viator shows the available local operators, current prices, reviews and booking terms.</p></article>
+          <article><span>1</span><h3>Choose the port</h3><p>Start with the exact cruise call rather than a generic destination list.</p></article>
+          <article><span>2</span><h3>Understand the day</h3><p>See local logistics, short history, key places and six distinct excursion ideas.</p></article>
+          <article><span>3</span><h3>Check live tours</h3><p>Viator shows current operators, prices, reviews, availability and booking terms.</p></article>
         </div>
       </section>
 
       <section className="cse-section cse-affiliate-explainer">
         <div>
-          <p className="cse-eyebrow">Deliberately affiliate-only</p>
-          <h2>We help you choose. We do not operate the excursion.</h2>
+          <p className="cse-eyebrow">Independent guide · affiliate supported</p>
+          <h2>We help you choose. The operator runs the tour.</h2>
         </div>
         <div>
           <p>
-            Shore Excursion Picks does not take payments, manage drivers, verify insurance or provide a return-to-ship guarantee.
-            The local supplier operates the experience and Viator handles the booking transaction and customer-service process.
+            Shore Excursion Picks does not operate excursions or take the booking payment. Viator displays the live listing and the selected local supplier delivers the experience.
           </p>
-          <p className="cse-disclosure">Affiliate disclosure: we may earn a commission if you book after following one of our Viator links.</p>
+          <p className="cse-disclosure">We may earn a commission if you complete a qualifying booking after following one of our Viator links.</p>
+          <Link className="cse-text-link" href="/methodology">See how we choose the picks →</Link>
         </div>
       </section>
 
