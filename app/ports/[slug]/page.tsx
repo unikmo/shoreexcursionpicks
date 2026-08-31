@@ -6,40 +6,31 @@ import { SiteFooter, SiteHeader } from "../../components/site-shell";
 import { viatorAffiliateUrl } from "../../lib/viator";
 import { getPort, getRegionTone, getViatorSearchUrl, ports } from "../port-data";
 import { getPortGuideDetail } from "../port-guide-data";
-import { getActivityImage, getPortImage } from "../port-images";
+import { getPortImage } from "../port-images";
 import { getRegionSlug } from "../region-data";
 import type { Activity, Port } from "../port-data";
 
 type PortPageProps = { params: Promise<{ slug: string }> };
 
-type ActivityCardProps = {
+type PickRowProps = {
   item: Activity;
   port: Port;
   rank: number;
-  quiet?: boolean;
 };
 
-function ActivityCard({ item, port, rank, quiet = false }: ActivityCardProps) {
+function PickRow({ item, port, rank }: PickRowProps) {
   const href = viatorAffiliateUrl(getViatorSearchUrl(port, item));
-  const image = getActivityImage(port, item, rank - 1);
 
   return (
-    <article
-      id={`pick-${rank}`}
-      className={quiet ? "cse-activity-card cse-activity-card-quiet" : "cse-activity-card"}
-    >
-      {!quiet ? (
-        <div className="cse-activity-card-media">
-          <img src={image.src} alt={image.alt} width="720" height="440" loading="lazy" />
-        </div>
-      ) : null}
-      <div className="cse-activity-rank">{String(rank).padStart(2, "0")}</div>
-      <div className="cse-activity-copy">
+    <article id={`pick-${rank}`} className="cse-editorial-pick">
+      <div className="cse-editorial-pick-rank">{String(rank).padStart(2, "0")}</div>
+      <div className="cse-editorial-pick-copy">
+        <span>Standout pick</span>
         <h3>{item.title}</h3>
         <p>{item.note}</p>
       </div>
       <a href={href} target="_blank" rel="sponsored noreferrer noopener">
-        View live options on Viator <span aria-hidden="true">↗</span>
+        View excursion <span aria-hidden="true">↗</span>
       </a>
     </article>
   );
@@ -92,8 +83,11 @@ export default async function PortPage({ params }: PortPageProps) {
   const guide = getPortGuideDetail(port.slug);
   if (!guide) notFound();
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shoreexcursionsguide.com";
-  const allActivities = [...port.topActivities, ...port.nicheActivities];
+  // Product promise: exactly three primary activities + exactly three alternatives.
+  const topActivities = port.topActivities.slice(0, 3);
+  const alternativeActivities = port.nicheActivities.slice(0, 3);
+  const allActivities = [...topActivities, ...alternativeActivities];
+  const siteUrl = "https://shoreexcursionsguide.com";
   const heroImage = getPortImage(port);
   const regionSlug = getRegionSlug(port.region);
   const nearbyPorts = ports.flatMap((candidate) => {
@@ -105,7 +99,6 @@ export default async function PortPage({ params }: PortPageProps) {
           country: candidate.country,
           latitude: candidateGuide.latitude,
           longitude: candidateGuide.longitude,
-          topPick: candidate.topActivities[0].title,
         }]
       : [];
   });
@@ -114,7 +107,7 @@ export default async function PortPage({ params }: PortPageProps) {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: `Six curated shore excursion ideas in ${port.name}`,
-    numberOfItems: allActivities.length,
+    numberOfItems: 6,
     itemListElement: allActivities.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,
@@ -162,7 +155,7 @@ export default async function PortPage({ params }: PortPageProps) {
   const faqItems = [
     {
       question: `What is the best shore excursion in ${port.name}?`,
-      answer: `Our first pick is ${port.topActivities[0].title}. ${port.topActivities[0].note}`,
+      answer: `Our first pick is ${topActivities[0].title}. ${topActivities[0].note}`,
     },
     {
       question: `What should cruise passengers know about ${port.name}?`,
@@ -170,7 +163,7 @@ export default async function PortPage({ params }: PortPageProps) {
     },
     {
       question: `What are important places to see in ${port.name}?`,
-      answer: `Start with ${guide.importantPlaces.join(", ")}. Which one fits depends on your ship time and the kind of day you want.`,
+      answer: `Start with ${guide.importantPlaces.join(", ")}.`,
     },
   ];
 
@@ -185,7 +178,7 @@ export default async function PortPage({ params }: PortPageProps) {
   };
 
   return (
-    <main className="cse-page">
+    <main className="cse-page cse-editorial-port-page">
       <SiteHeader />
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemList) }} />
@@ -193,38 +186,87 @@ export default async function PortPage({ params }: PortPageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
-      <section className={`cse-port-hero-compact cse-region-${getRegionTone(port.region)}`}>
-        <div className="cse-port-hero-copy">
-          <p className="cse-eyebrow">{port.country} · cruise port guide</p>
-          <h1>{port.name} shore excursions</h1>
-          <p className="cse-lead">{port.heroLine}</p>
+      <section className={`cse-editorial-port-hero cse-region-${getRegionTone(port.region)}`}>
+        <div className="cse-editorial-port-title">
+          <p className="cse-eyebrow">{port.country} · {port.region}</p>
+          <h1>{port.name}</h1>
+          <p>{port.heroLine}</p>
         </div>
 
-        <div className="cse-port-hero-media">
-          <img src={heroImage.src} alt={heroImage.alt} width="1200" height="720" fetchPriority="high" />
-          <div className="cse-port-hero-caption">
-            <strong>Port-day note</strong>
-            <span>{port.portNote}</span>
-          </div>
+        <div className="cse-editorial-port-image">
+          <img src={heroImage.src} alt={heroImage.alt} width="1440" height="820" fetchPriority="high" />
           {heroImage.sourceUrl ? (
-            <a className="cse-port-image-credit" href={heroImage.sourceUrl} target="_blank" rel="noreferrer noopener">
+            <a href={heroImage.sourceUrl} target="_blank" rel="noreferrer noopener" className="cse-port-image-credit">
               Image source ↗
             </a>
           ) : null}
         </div>
 
-        <div className="cse-port-hero-actions">
-          <span>3 top picks</span>
-          <span>3 alternatives</span>
-          {regionSlug ? <Link href={`/ports/regions/${regionSlug}`}>More {port.region} ports →</Link> : null}
+        <div className="cse-editorial-port-facts" aria-label={`${port.name} guide summary`}>
+          <div><span>01</span><strong>3 standout picks</strong><small>Our short list</small></div>
+          <div><span>02</span><strong>3 alternatives</strong><small>No endless catalogue</small></div>
+          <div><span>03</span><strong>{guide.importantPlaces[0]}</strong><small>Key place to know</small></div>
         </div>
       </section>
 
-      <section className="cse-port-context">
+      <nav className="cse-editorial-tabs" aria-label={`${port.name} page sections`}>
+        <a href="#top-picks">Top picks</a>
+        <a href="#alternatives">Alternatives</a>
+        <a href="#port-notes">Port notes</a>
+        <span>3 + 3 only</span>
+      </nav>
+
+      <section className="cse-editorial-shortlist" id="top-picks">
+        <div className="cse-editorial-section-heading">
+          <p className="cse-eyebrow">Our short list</p>
+          <h2>Three standout picks.</h2>
+        </div>
+        <div className="cse-editorial-pick-list">
+          {topActivities.map((item, index) => (
+            <PickRow item={item} port={port} rank={index + 1} key={item.title} />
+          ))}
+        </div>
+        <p className="cse-editorial-affiliate-line">
+          Viator displays the live operator, current price, availability, reviews and booking terms. We may earn a commission from qualifying bookings at no extra cost to you.
+        </p>
+      </section>
+
+      <section className="cse-editorial-alternatives" id="alternatives">
+        <div className="cse-editorial-section-heading cse-editorial-section-heading-light">
+          <p className="cse-eyebrow">Smart alternatives</p>
+          <h2>Three other ways to spend the day.</h2>
+        </div>
+        <div className="cse-editorial-alternative-grid">
+          {alternativeActivities.map((item, index) => {
+            const href = viatorAffiliateUrl(getViatorSearchUrl(port, item));
+            return (
+              <a id={`pick-${index + 4}`} href={href} target="_blank" rel="sponsored noreferrer noopener" key={item.title}>
+                <span>{String(index + 4).padStart(2, "0")}</span>
+                <h3>{item.title}</h3>
+                <p>{item.note}</p>
+                <b>View excursion ↗</b>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="cse-editorial-port-note" id="port-notes">
+        <div>
+          <p className="cse-eyebrow">Before you book</p>
+          <h2>{port.name} port note.</h2>
+        </div>
+        <div>
+          <p>{port.portNote}</p>
+          <a href="#top-picks">Return to picks ↗</a>
+        </div>
+      </section>
+
+      <section className="cse-port-context cse-editorial-context">
         <details>
           <summary>
             <span>
-              <small>Know the port</small>
+              <small>Know {port.name}</small>
               <strong>Short history & important places</strong>
             </span>
             <b aria-hidden="true">+</b>
@@ -244,65 +286,11 @@ export default async function PortPage({ params }: PortPageProps) {
         </details>
       </section>
 
-      <section className="cse-section cse-picks-section">
-        <div className="cse-section-heading">
-          <div>
-            <p className="cse-eyebrow">Start here</p>
-            <h2>3 strong ways to spend the day</h2>
-          </div>
-          <p className="cse-heading-note">
-            We rank experience types, not operators. Viator shows current suppliers, prices, reviews and booking terms.
-          </p>
-        </div>
-        <div className="cse-primary-activities">
-          {port.topActivities.map((item, index) => (
-            <ActivityCard item={item} port={port} rank={index + 1} key={item.title} />
-          ))}
-        </div>
-      </section>
-
-      <section className="cse-niche-section">
-        <details>
-          <summary>
-            <span><small>Worth a look</small><strong>3 less-obvious alternatives</strong></span>
-            <b aria-hidden="true">+</b>
-          </summary>
-          <div className="cse-niche-activities">
-            {port.nicheActivities.map((item, index) => (
-              <ActivityCard item={item} port={port} rank={index + 4} quiet key={item.title} />
-            ))}
-          </div>
-        </details>
-      </section>
-
-      <section className="cse-port-logistics">
-        <div>
-          <p className="cse-eyebrow">Port-day logistics</p>
-          <h2>Plan around this port, not a generic checklist.</h2>
-        </div>
-        <p>{port.portNote}</p>
-      </section>
-
-      <section className="cse-port-faq">
-        <div className="cse-port-faq-heading">
-          <p className="cse-eyebrow">Quick answers</p>
-          <h2>{port.name} cruise questions</h2>
-        </div>
-        <div className="cse-port-faq-list">
-          {faqItems.map((item) => (
-            <details key={item.question}>
-              <summary>{item.question}</summary>
-              <p>{item.answer}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-
       <NearbyPortGuides currentSlug={port.slug} ports={nearbyPorts} />
 
       <section className="cse-partner-note" aria-label="Affiliate disclosure">
         <strong>Booking partner: Viator.</strong>
-        <span>We research the options; Viator and the selected local supplier handle booking and fulfilment.</span>
+        <span>Six activities per port: three standout picks and three alternatives.</span>
         <small>We may earn a commission from qualifying bookings, at no extra cost to you.</small>
       </section>
 
