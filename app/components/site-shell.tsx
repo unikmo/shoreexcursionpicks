@@ -9,7 +9,7 @@ export function SiteHeader() {
       </Link>
       <nav className="cse-nav-links" aria-label="Main navigation">
         <Link href="/ports">All ports</Link>
-        <Link href="/#how-it-works">How it works</Link>
+        <Link href="/methodology">How we pick</Link>
         <Link className="cse-nav-cta" href="/ports">Choose your port</Link>
       </nav>
     </header>
@@ -23,7 +23,7 @@ export function SiteFooter() {
         <span className="cse-brand-mark">SEP</span>
         <span>Shore Excursion Picks</span>
       </div>
-      <p>The best shore excursions—without endless searching.</p>
+      <p><Link href="/methodology">How we choose the picks</Link></p>
       <p>We may earn a commission from qualifying bookings, at no extra cost to you.</p>
     </footer>
   );
