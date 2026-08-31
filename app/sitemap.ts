@@ -3,11 +3,12 @@ import { ports } from "./ports/port-data";
 import { regionGuides } from "./ports/region-data";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://shoreexcursionpicks.com";
+  const baseUrl = "https://shoreexcursionsguide.com";
 
   return [
     { url: baseUrl, changeFrequency: "weekly", priority: 1 },
     { url: `${baseUrl}/ports`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${baseUrl}/methodology`, changeFrequency: "monthly", priority: 0.65 },
     ...regionGuides.map((region) => ({
       url: `${baseUrl}/ports/regions/${region.slug}`,
       changeFrequency: "weekly" as const,
