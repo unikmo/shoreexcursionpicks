@@ -47,7 +47,7 @@ export default async function RegionPage({ params }: RegionPageProps) {
       "@type": "ListItem",
       position: index + 1,
       name: port.name,
-      url: `https://shoreexcursionpicks.com/ports/${port.slug}`,
+      url: `https://shoreexcursionsguide.com/ports/${port.slug}`,
     })),
   };
 
