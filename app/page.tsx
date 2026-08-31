@@ -9,7 +9,7 @@ import { getRegionSlug } from "./ports/region-data";
 export const metadata: Metadata = {
   title: "Curated Shore Excursions & Cruise Port Guides",
   description:
-    "Find six curated shore excursion ideas for 60 cruise ports, with port-specific logistics, short history, important places and nearby port guides.",
+    "Save time choosing a shore excursion. We narrow each cruise port to six strong choices so you can compare less and find the right fit faster.",
 };
 
 const featuredSlugs = ["roatan", "cozumel", "barcelona", "santorini", "juneau", "civitavecchia-rome"];
@@ -34,7 +34,7 @@ export default function HomePage() {
     name: "Shore Excursion Picks cruise port guides",
     url: "https://shoreexcursionsguide.com",
     description:
-      "Independent cruise-port guides that narrow each destination to six shore excursion ideas and add port-specific context for planning the day.",
+      "Independent cruise-port guides that save travelers time by narrowing each destination to six strong shore excursion choices with port-specific context.",
     mainEntity: {
       "@type": "ItemList",
       numberOfItems: ports.length,
@@ -65,17 +65,20 @@ export default function HomePage() {
 
         <div className="cse-home-image-hero-content">
           <p className="cse-home-image-hero-kicker">Shore Excursion Picks</p>
-          <h1 id="home-hero-title">Find your shore day.</h1>
-          <p className="cse-home-image-hero-promise">3 standout picks. 3 alternatives. Every port.</p>
+          <h1 id="home-hero-title">Your shore day, without the endless searching.</h1>
+          <p className="cse-home-image-hero-promise">
+            We narrow every port to six strong choices — enough variety to find what fits, without the comparison overload.
+          </p>
 
           <div className="cse-home-hero-search">
             <PortFinder ports={searchablePorts} />
           </div>
         </div>
 
-        <div className="cse-home-image-hero-meta" aria-label="Guide coverage">
-          <span>{ports.length} cruise ports</span>
-          <span>6 activities per port</span>
+        <div className="cse-home-image-hero-meta" aria-label="Why use Shore Excursion Picks">
+          <span>Save time</span>
+          <span>Avoid choice overload</span>
+          <span>Find the right fit faster</span>
         </div>
 
         {heroImage.sourceUrl ? (
