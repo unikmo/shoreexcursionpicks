@@ -48,61 +48,53 @@ export default function HomePage() {
   };
 
   return (
-    <main className="cse-page">
+    <main className="cse-page cse-home-page">
       <SiteHeader />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }} />
 
-      <section className="cse-home-hero">
-        <div className="cse-home-hero-copy">
-          <p className="cse-eyebrow">Independent cruise port guides</p>
-          <h1>Find the best shore excursions for your next port</h1>
-          <p className="cse-lead">
-            Six curated ideas per port—three strong picks and three alternatives—plus local logistics, short history, important places and nearby port guides.
-          </p>
-          <div className="cse-actions">
-            <Link className="cse-button cse-button-primary" href="#port-finder">Choose your port</Link>
-            <Link className="cse-button cse-button-secondary" href="/ports">Browse all ports</Link>
+      <section className="cse-home-image-hero" aria-labelledby="home-hero-title">
+        <img
+          className="cse-home-image-hero-media"
+          src={heroImage.src}
+          alt={heroImage.alt}
+          width="1600"
+          height="1000"
+          fetchPriority="high"
+        />
+        <div className="cse-home-image-hero-shade" aria-hidden="true" />
+
+        <div className="cse-home-image-hero-content">
+          <p className="cse-home-image-hero-kicker">Shore Excursion Picks</p>
+          <h1 id="home-hero-title">Find your shore day.</h1>
+          <p className="cse-home-image-hero-promise">3 standout picks. 3 alternatives. Every port.</p>
+
+          <div className="cse-home-hero-search">
+            <PortFinder ports={searchablePorts} />
           </div>
-          <ul className="cse-trust-list" aria-label="What to expect">
-            <li>{ports.length} major cruise ports</li>
-            <li>6 excursion ideas per port</li>
-            <li>Nearby ports by location</li>
-          </ul>
         </div>
 
-        <div className="cse-editorial-card" aria-label="How a port guide is organised">
-          <div className="cse-editorial-visual">
-            <img src={heroImage.src} alt={heroImage.alt} width="900" height="600" fetchPriority="high" />
-            <div className="cse-editorial-topline">
-              <span>Roatán</span>
-              <span>3 top picks</span>
-            </div>
-          </div>
-          <ol>
-            <li><span>01</span><strong>Sloth sanctuary & island highlights</strong></li>
-            <li><span>02</span><strong>West Bay reef snorkel & beach</strong></li>
-            <li><span>03</span><strong>Custom private driver tour</strong></li>
-          </ol>
-          <p>Plus three quieter alternatives when the obvious choices are not your style.</p>
+        <div className="cse-home-image-hero-meta" aria-label="Guide coverage">
+          <span>{ports.length} cruise ports</span>
+          <span>6 activities per port</span>
         </div>
+
+        {heroImage.sourceUrl ? (
+          <a className="cse-home-image-credit" href={heroImage.sourceUrl} target="_blank" rel="noreferrer noopener">
+            Image source ↗
+          </a>
+        ) : null}
       </section>
 
-      <section className="cse-port-finder-section" id="port-finder">
-        <div className="cse-port-finder-heading">
+      <section className="cse-home-region-browser" aria-labelledby="region-browser-title">
+        <div className="cse-home-region-browser-heading">
           <div>
-            <p className="cse-eyebrow">All {ports.length} port guides</p>
-            <h2>Where is your ship stopping?</h2>
+            <p className="cse-eyebrow">Browse by region</p>
+            <h2 id="region-browser-title">Or start with where you are sailing.</h2>
           </div>
-          <p>Search by port, country, region or the kind of experience you want.</p>
+          <Link href="/ports">All {ports.length} ports →</Link>
         </div>
 
-        <PortFinder ports={searchablePorts} />
-
         <div className="cse-region-shortcuts">
-          <div className="cse-region-shortcuts-heading">
-            <strong>Browse {regions.length} cruise regions</strong>
-            <Link href="/ports">Open the regional directory →</Link>
-          </div>
           <div>
             {regions.map((region) => {
               const regionSlug = getRegionSlug(region);
@@ -122,7 +114,7 @@ export default function HomePage() {
 
       <section className="cse-model-strip" aria-label="How the guide works">
         <strong>Port first.</strong>
-        <span>Local context and six ideas.</span>
+        <span>3 standout picks + 3 alternatives.</span>
         <span>Live booking details on Viator.</span>
       </section>
 
@@ -163,7 +155,7 @@ export default function HomePage() {
         </div>
         <div className="cse-step-grid">
           <article><span>1</span><h3>Choose the port</h3><p>Start with the exact cruise call rather than a generic destination list.</p></article>
-          <article><span>2</span><h3>Understand the day</h3><p>See local logistics, short history, key places and six distinct excursion ideas.</p></article>
+          <article><span>2</span><h3>See six ideas</h3><p>Three standout picks and three alternatives. Nothing more.</p></article>
           <article><span>3</span><h3>Check live tours</h3><p>Viator shows current operators, prices, reviews, availability and booking terms.</p></article>
         </div>
       </section>
