@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./shore-excursions.css";
 import "./launch-overrides.css";
+import "./home-hero.css";
 import "./methodology.css";
 
 const siteUrl = "https://shoreexcursionsguide.com";
