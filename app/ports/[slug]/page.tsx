@@ -3,43 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NearbyPortGuides } from "../../components/nearby-port-guides";
 import { SiteFooter, SiteHeader } from "../../components/site-shell";
-import { viatorAffiliateUrl } from "../../lib/viator";
-import { getPort, getRegionTone, getViatorSearchUrl, ports } from "../port-data";
+import ViatorPortPicks from "../../components/viator-port-picks";
+import { getPort, getRegionTone, ports } from "../port-data";
 import { getPortGuideDetail } from "../port-guide-data";
 import { getPortHistory } from "../port-history-data";
 import { getActivityImage, getPortImage } from "../port-images";
 import { getRegionSlug } from "../region-data";
-import type { Activity, Port } from "../port-data";
+import type { Port } from "../port-data";
 
 type PortPageProps = { params: Promise<{ slug: string }> };
-
-type PickRowProps = {
-  item: Activity;
-  port: Port;
-  rank: number;
-};
-
-function PickRow({ item, port, rank }: PickRowProps) {
-  const href = viatorAffiliateUrl(getViatorSearchUrl(port, item));
-  const image = getActivityImage(port, item, rank - 1);
-
-  return (
-    <article id={`pick-${rank}`} className="cse-editorial-pick">
-      <div className="cse-editorial-pick-media">
-        <img src={image.src} alt={image.alt} width="520" height="350" loading="lazy" />
-      </div>
-      <div className="cse-editorial-pick-rank">{String(rank).padStart(2, "0")}</div>
-      <div className="cse-editorial-pick-copy">
-        <span>Standout pick</span>
-        <h3>{item.title}</h3>
-        <p>{item.note}</p>
-      </div>
-      <a href={href} target="_blank" rel="sponsored noreferrer noopener">
-        View excursion <span aria-hidden="true">↗</span>
-      </a>
-    </article>
-  );
-}
 
 const seoTitles: Record<string, string> = {
   cozumel: "Best Cozumel Shore Excursions: 6 Curated Picks + Port Guide",
@@ -90,10 +62,18 @@ export default async function PortPage({ params }: PortPageProps) {
 
   const history = getPortHistory(port.slug);
 
-  // Product promise: exactly three primary activities + exactly three alternatives.
+  // Product promise: exactly three primary activity concepts + exactly three alternatives.
+  // The live client resolves each concept to one exact Viator product for the selected port date.
   const topActivities = port.topActivities.slice(0, 3);
   const alternativeActivities = port.nicheActivities.slice(0, 3);
   const allActivities = [...topActivities, ...alternativeActivities];
+  const liveConcepts = allActivities.map((item, index) => ({
+    title: item.title,
+    note: item.note,
+    placeholderImage: getActivityImage(port, item, index).src,
+    group: index < 3 ? ("top" as const) : ("alternative" as const),
+  }));
+
   const siteUrl = "https://shoreexcursionsguide.com";
   const heroImage = getPortImage(port);
   const regionSlug = getRegionSlug(port.region);
@@ -120,7 +100,7 @@ export default async function PortPage({ params }: PortPageProps) {
       position: index + 1,
       name: item.title,
       description: item.note,
-      url: `${siteUrl}/ports/${port.slug}#pick-${index + 1}`,
+      url: `${siteUrl}/ports/${port.slug}#picks`,
     })),
   };
 
@@ -162,7 +142,7 @@ export default async function PortPage({ params }: PortPageProps) {
   const faqItems = [
     {
       question: `What is the best shore excursion in ${port.name}?`,
-      answer: `Our first pick is ${topActivities[0].title}. ${topActivities[0].note}`,
+      answer: `Our first curated theme is ${topActivities[0].title}. ${topActivities[0].note} Select your port date to see the exact current Viator excursion, price and start times.`,
     },
     {
       question: `What should cruise passengers know about ${port.name}?`,
@@ -217,51 +197,14 @@ export default async function PortPage({ params }: PortPageProps) {
       </section>
 
       <nav className="cse-editorial-tabs" aria-label={`${port.name} page sections`}>
-        <a href="#top-picks">Top picks</a>
+        <a href="#picks">Top picks</a>
         <a href="#alternatives">Alternatives</a>
         <a href="#port-notes">Port notes</a>
         <a href="#history">History</a>
         <span>3 + 3 only</span>
       </nav>
 
-      <section className="cse-editorial-shortlist" id="top-picks">
-        <div className="cse-editorial-section-heading">
-          <p className="cse-eyebrow">Our short list</p>
-          <h2>Three standout picks.</h2>
-        </div>
-        <div className="cse-editorial-pick-list">
-          {topActivities.map((item, index) => (
-            <PickRow item={item} port={port} rank={index + 1} key={item.title} />
-          ))}
-        </div>
-        <p className="cse-editorial-affiliate-line">
-          Viator displays the live operator, current price, availability, reviews and booking terms. We may earn a commission from qualifying bookings at no extra cost to you.
-        </p>
-      </section>
-
-      <section className="cse-editorial-alternatives" id="alternatives">
-        <div className="cse-editorial-section-heading cse-editorial-section-heading-light">
-          <p className="cse-eyebrow">Smart alternatives</p>
-          <h2>Three other ways to spend the day.</h2>
-        </div>
-        <div className="cse-editorial-alternative-grid">
-          {alternativeActivities.map((item, index) => {
-            const href = viatorAffiliateUrl(getViatorSearchUrl(port, item));
-            const image = getActivityImage(port, item, index + 3);
-            return (
-              <a id={`pick-${index + 4}`} href={href} target="_blank" rel="sponsored noreferrer noopener" key={item.title}>
-                <div className="cse-editorial-alternative-media">
-                  <img src={image.src} alt={image.alt} width="540" height="360" loading="lazy" />
-                </div>
-                <span>{String(index + 4).padStart(2, "0")}</span>
-                <h3>{item.title}</h3>
-                <p>{item.note}</p>
-                <b>View excursion ↗</b>
-              </a>
-            );
-          })}
-        </div>
-      </section>
+      <ViatorPortPicks portSlug={port.slug} portName={port.name} concepts={liveConcepts} />
 
       <section className="cse-editorial-port-note" id="port-notes">
         <div>
@@ -270,7 +213,7 @@ export default async function PortPage({ params }: PortPageProps) {
         </div>
         <div>
           <p>{port.portNote}</p>
-          <a href="#top-picks">Return to picks ↗</a>
+          <a href="#picks">Return to picks ↗</a>
         </div>
       </section>
 
@@ -311,7 +254,7 @@ export default async function PortPage({ params }: PortPageProps) {
 
       <section className="cse-partner-note" aria-label="Affiliate disclosure">
         <strong>Booking partner: Viator.</strong>
-        <span>Six activities per port: three standout picks and three alternatives.</span>
+        <span>Six exact excursion listings per selected date: three standout picks and three alternatives.</span>
         <small>We may earn a commission from qualifying bookings, at no extra cost to you.</small>
       </section>
 
