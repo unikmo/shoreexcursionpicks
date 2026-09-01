@@ -6,7 +6,8 @@ import { SiteFooter, SiteHeader } from "../../components/site-shell";
 import { viatorAffiliateUrl } from "../../lib/viator";
 import { getPort, getRegionTone, getViatorSearchUrl, ports } from "../port-data";
 import { getPortGuideDetail } from "../port-guide-data";
-import { getPortImage } from "../port-images";
+import { getPortHistory } from "../port-history-data";
+import { getActivityImage, getPortImage } from "../port-images";
 import { getRegionSlug } from "../region-data";
 import type { Activity, Port } from "../port-data";
 
@@ -20,9 +21,13 @@ type PickRowProps = {
 
 function PickRow({ item, port, rank }: PickRowProps) {
   const href = viatorAffiliateUrl(getViatorSearchUrl(port, item));
+  const image = getActivityImage(port, item, rank - 1);
 
   return (
     <article id={`pick-${rank}`} className="cse-editorial-pick">
+      <div className="cse-editorial-pick-media">
+        <img src={image.src} alt={image.alt} width="520" height="350" loading="lazy" />
+      </div>
       <div className="cse-editorial-pick-rank">{String(rank).padStart(2, "0")}</div>
       <div className="cse-editorial-pick-copy">
         <span>Standout pick</span>
@@ -83,6 +88,8 @@ export default async function PortPage({ params }: PortPageProps) {
   const guide = getPortGuideDetail(port.slug);
   if (!guide) notFound();
 
+  const history = getPortHistory(port.slug);
+
   // Product promise: exactly three primary activities + exactly three alternatives.
   const topActivities = port.topActivities.slice(0, 3);
   const alternativeActivities = port.nicheActivities.slice(0, 3);
@@ -121,7 +128,7 @@ export default async function PortPage({ params }: PortPageProps) {
     "@context": "https://schema.org",
     "@type": "TouristDestination",
     name: `${port.name} cruise port guide`,
-    description: port.heroLine,
+    description: history?.summary ?? port.heroLine,
     url: `${siteUrl}/ports/${port.slug}`,
     geo: {
       "@type": "GeoCoordinates",
@@ -213,6 +220,7 @@ export default async function PortPage({ params }: PortPageProps) {
         <a href="#top-picks">Top picks</a>
         <a href="#alternatives">Alternatives</a>
         <a href="#port-notes">Port notes</a>
+        <a href="#history">History</a>
         <span>3 + 3 only</span>
       </nav>
 
@@ -239,8 +247,12 @@ export default async function PortPage({ params }: PortPageProps) {
         <div className="cse-editorial-alternative-grid">
           {alternativeActivities.map((item, index) => {
             const href = viatorAffiliateUrl(getViatorSearchUrl(port, item));
+            const image = getActivityImage(port, item, index + 3);
             return (
               <a id={`pick-${index + 4}`} href={href} target="_blank" rel="sponsored noreferrer noopener" key={item.title}>
+                <div className="cse-editorial-alternative-media">
+                  <img src={image.src} alt={image.alt} width="540" height="360" loading="lazy" />
+                </div>
                 <span>{String(index + 4).padStart(2, "0")}</span>
                 <h3>{item.title}</h3>
                 <p>{item.note}</p>
@@ -262,28 +274,37 @@ export default async function PortPage({ params }: PortPageProps) {
         </div>
       </section>
 
-      <section className="cse-port-context cse-editorial-context">
-        <details>
-          <summary>
-            <span>
-              <small>Know {port.name}</small>
-              <strong>Short history & important places</strong>
-            </span>
-            <b aria-hidden="true">+</b>
-          </summary>
-          <div className="cse-port-context-body">
-            <div>
-              <h2>{port.name} in brief</h2>
-              <p>{guide.history}</p>
-            </div>
-            <div>
-              <h2>Important places</h2>
-              <ul>
-                {guide.importantPlaces.map((place) => <li key={place}>{place}</li>)}
-              </ul>
-            </div>
-          </div>
-        </details>
+      <section className="cse-port-history" id="history">
+        <div className="cse-port-history-copy">
+          <p className="cse-eyebrow">Know {port.name}</p>
+          <h2>A little context changes the day.</h2>
+          <p className="cse-port-history-summary">{history?.summary ?? guide.history}</p>
+
+          {history ? (
+            <details className="cse-port-history-more">
+              <summary>More <span aria-hidden="true">+</span></summary>
+              <div>
+                <p>{history.more}</p>
+                <p className="cse-port-history-sources">
+                  <span>Research references:</span>{" "}
+                  <a href={history.wikipediaUrl} target="_blank" rel="noreferrer noopener">Wikipedia</a>
+                  {history.officialSource ? (
+                    <> · <a href={history.officialSource.url} target="_blank" rel="noreferrer noopener">{history.officialSource.label}</a></>
+                  ) : null}
+                </p>
+              </div>
+            </details>
+          ) : null}
+        </div>
+
+        <aside className="cse-port-history-places" aria-label={`Important places in ${port.name}`}>
+          <p className="cse-eyebrow">Important places</p>
+          <ol>
+            {guide.importantPlaces.map((place, index) => (
+              <li key={place}><span>{String(index + 1).padStart(2, "0")}</span><strong>{place}</strong></li>
+            ))}
+          </ol>
+        </aside>
       </section>
 
       <NearbyPortGuides currentSlug={port.slug} ports={nearbyPorts} />
