@@ -62,7 +62,6 @@ function tokens(value: string) {
     "tour",
     "trip",
     "day",
-    "roatan",
     "island",
     "private",
     "visit",
@@ -248,7 +247,7 @@ export async function resolveViatorPicks(
   const apiKey = process.env.VIATOR_API_KEY;
   if (!apiKey) throw new Error("VIATOR_NOT_CONFIGURED");
 
-  const concepts = [...port.topActivities, ...port.alternatives];
+  const concepts = [...port.topActivities, ...port.nicheActivities];
   const searches = await Promise.all(concepts.map((activity) => searchActivity(apiKey, port, activity, date, currency)));
 
   const selected: Array<{ activity: Activity; product: ViatorSearchProduct }> = [];
