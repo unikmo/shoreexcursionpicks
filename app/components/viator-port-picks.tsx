@@ -249,7 +249,7 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
           : concepts.slice(0, 3).map((concept, index) => <PlaceholderCard key={concept.title} concept={concept} rank={index + 1} />)}
       </div>
 
-      <div className="cse-live-picks-heading cse-live-picks-heading-alt">
+      <div className="cse-live-picks-heading cse-live-picks-heading-alt" id="alternatives">
         <span>02</span>
         <div>
           <p className="cse-eyebrow">Alternatives</p>
