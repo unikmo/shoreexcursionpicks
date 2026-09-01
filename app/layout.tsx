@@ -3,6 +3,7 @@ import "./globals.css";
 import "./shore-excursions.css";
 import "./launch-overrides.css";
 import "./home-hero.css";
+import "./port-rich-content.css";
 import "./methodology.css";
 
 const siteUrl = "https://shoreexcursionsguide.com";
