@@ -37,9 +37,9 @@
 }
 
 .cse-live-picks-controls {
-  min-width: 330px;
+  min-width: 260px;
   display: grid;
-  grid-template-columns: minmax(190px, 1fr) 105px;
+  grid-template-columns: minmax(220px, 1fr);
   gap: 10px;
   padding: 14px;
   border: 1px solid rgba(18, 46, 41, .13);
@@ -60,8 +60,7 @@
   text-transform: uppercase;
 }
 
-.cse-live-picks-controls input,
-.cse-live-picks-controls select {
+.cse-live-picks-controls input {
   width: 100%;
   min-height: 42px;
   box-sizing: border-box;
@@ -310,7 +309,7 @@
   }
 
   .cse-live-picks-controls {
-    width: min(100%, 480px);
+    width: min(100%, 360px);
   }
 
   .cse-live-picks-grid-top,
