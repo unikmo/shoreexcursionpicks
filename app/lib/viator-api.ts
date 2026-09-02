@@ -104,16 +104,16 @@ function retailPrice(detail: Record<string, unknown>, travelDate: string) {
     typeof specialPrice === "number" &&
     dateInRange(
       today,
-      typeof special.offerStartDate === "string" ? special.offerStartDate : undefined,
-      typeof special.offerEndDate === "string" ? special.offerEndDate : undefined,
+      typeof special?.offerStartDate === "string" ? special.offerStartDate : undefined,
+      typeof special?.offerEndDate === "string" ? special.offerEndDate : undefined,
     ) &&
     dateInRange(
       travelDate,
-      typeof special.travelStartDate === "string" ? special.travelStartDate : undefined,
-      typeof special.travelEndDate === "string" ? special.travelEndDate : undefined,
+      typeof special?.travelStartDate === "string" ? special.travelStartDate : undefined,
+      typeof special?.travelEndDate === "string" ? special.travelEndDate : undefined,
     );
 
-  if (specialApplies) return specialPrice as number;
+  if (specialApplies) return specialPrice;
   return typeof original?.recommendedRetailPrice === "number" ? original.recommendedRetailPrice : null;
 }
 
