@@ -24,7 +24,7 @@ const curatedViatorProducts: Record<string, CuratedViatorSet> = {
   roatan: [
     {
       conceptTitle: "Sloth sanctuary & island highlights",
-      productCodes: ["11252P31"],
+      productCodes: ["11252P31", "426735P15"],
     },
     {
       conceptTitle: "West Bay reef snorkel & beach",
@@ -36,7 +36,7 @@ const curatedViatorProducts: Record<string, CuratedViatorSet> = {
     },
     {
       conceptTitle: "Garifuna culture in Punta Gorda",
-      productCodes: ["107493P50"],
+      productCodes: ["107493P50", "11252P43", "62963P78", "62963P3"],
     },
     {
       conceptTitle: "Mangrove tunnel boat trip",
