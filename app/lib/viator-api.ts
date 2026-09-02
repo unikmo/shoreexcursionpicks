@@ -1,5 +1,6 @@
 import type { Port } from "../ports/port-data";
 import { getCuratedViatorSet, type CuratedViatorSlot } from "../ports/viator-curation";
+import { viatorAffiliateUrl } from "./viator";
 
 const VIATOR_BASE_URL = "https://api.viator.com/partner";
 const CACHE_SECONDS = 60 * 60;
@@ -284,7 +285,7 @@ async function resolveCuratedSlot(
       title: cleanText(product.title),
       description: cleanText(product.description ?? slot.conceptTitle),
       imageUrl: pickImage(product),
-      productUrl,
+      productUrl: viatorAffiliateUrl(productUrl),
       fromPrice: schedule.fromPrice,
       currency: schedule.currency,
       priceBasis: schedule.priceBasis,
