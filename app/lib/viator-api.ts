@@ -19,6 +19,7 @@ export type ViatorResolvedPick = {
   reviewCount: number | null;
   startTimes: string[];
   freeCancellation: boolean;
+  availableForSelectedDate: boolean;
 };
 
 type ViatorProduct = {
@@ -227,7 +228,7 @@ function analyzeSchedule(payload: unknown, date: string): ScheduleResult {
   const datedPrice = priceForDate(applicablePricing, date);
   return {
     available,
-    fromPrice: datedPrice?.value ?? (available ? summaryFromPrice : null),
+    fromPrice: datedPrice?.value ?? summaryFromPrice,
     currency,
     priceBasis: datedPrice?.basis ?? (summaryFromPrice != null ? "per person" : null),
     startTimes: [...startTimes].sort(),
@@ -267,19 +268,21 @@ async function resolveCuratedSlot(
   slot: CuratedViatorSlot,
   date: string,
 ): Promise<ViatorResolvedPick | null> {
+  let fallback: ViatorResolvedPick | null = null;
+
   for (const productCode of slot.productCodes) {
     const [product, schedule] = await Promise.all([
       fetchProduct(apiKey, productCode, portSlug),
       fetchSchedule(apiKey, productCode, date),
     ]);
 
-    if (!product || !schedule?.available) continue;
+    if (!product || !schedule) continue;
 
     const exactProductCode = product.productCode ?? productCode;
     const productUrl = safeProductUrl(product.productUrl);
     if (!product.title || !productUrl || exactProductCode !== productCode) continue;
 
-    return {
+    const candidate: ViatorResolvedPick = {
       conceptTitle: slot.conceptTitle,
       productCode,
       title: cleanText(product.title),
@@ -293,10 +296,14 @@ async function resolveCuratedSlot(
       reviewCount: product.reviews?.totalReviews ?? null,
       startTimes: schedule.startTimes,
       freeCancellation: Boolean(product.flags?.includes("FREE_CANCELLATION")),
+      availableForSelectedDate: schedule.available,
     };
+
+    if (schedule.available) return candidate;
+    fallback ??= candidate;
   }
 
-  return null;
+  return fallback;
 }
 
 export async function resolveViatorPicks(port: Port, date: string): Promise<ViatorResolvedPick[]> {

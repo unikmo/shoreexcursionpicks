@@ -23,6 +23,7 @@ type LivePick = {
   reviewCount: number | null;
   startTimes: string[];
   freeCancellation: boolean;
+  availableForSelectedDate: boolean;
 };
 
 type Props = {
@@ -35,6 +36,12 @@ function localToday() {
   const now = new Date();
   const offset = now.getTimezoneOffset();
   return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
+}
+
+function upcomingTravelDate(days = 30) {
+  const date = new Date(`${localToday()}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 function formatPrice(value: number | null, currency: string | null, basis: string | null) {
@@ -113,8 +120,12 @@ function LiveCard({ pick, date, rank }: { pick: LivePick; date: string; rank: nu
             <dd>{formatPrice(pick.fromPrice, pick.currency, pick.priceBasis)}</dd>
           </div>
           <div>
-            <dt>Date</dt>
-            <dd>{formatDate(date)}</dd>
+            <dt>Availability</dt>
+            <dd>
+              {pick.availableForSelectedDate
+                ? formatDate(date)
+                : `Check exact times for ${formatDate(date)}`}
+            </dd>
           </div>
           <div>
             <dt>Start</dt>
@@ -144,6 +155,10 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
   const minDate = useMemo(localToday, []);
 
   useEffect(() => {
+    setDate(upcomingTravelDate());
+  }, []);
+
+  useEffect(() => {
     if (!date) {
       setPicks(null);
       setMessage(null);
@@ -155,7 +170,6 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
     async function load() {
       setLoading(true);
       setMessage(null);
-      setPicks(null);
 
       try {
         const params = new URLSearchParams({ slug: portSlug, date });
@@ -217,6 +231,7 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
               type="date"
               min={minDate}
               value={date}
+              onInput={(event) => setDate(event.currentTarget.value)}
               onChange={(event) => setDate(event.target.value)}
             />
           </label>
@@ -224,7 +239,7 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
       </div>
 
       {message ? <div className="cse-live-picks-status" role="status">{message}</div> : null}
-      {loading ? <div className="cse-live-picks-status" role="status">Checking the six exact excursions for {formatDate(date)}…</div> : null}
+      {loading ? <div className="cse-live-picks-status" role="status">Updating prices and availability for {formatDate(date)}…</div> : null}
 
       <div className="cse-live-picks-heading">
         <span>01</span>
