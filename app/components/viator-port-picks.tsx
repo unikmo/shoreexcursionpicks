@@ -115,19 +115,19 @@ function LiveCard({ pick, date, rank }: { pick: LivePick; date: string; rank: nu
         <p>{pick.description}</p>
 
         <dl className="cse-live-pick-meta">
-          <div>
+          <div className="cse-live-pick-price">
             <dt>Price</dt>
             <dd>{formatPrice(pick.fromPrice, pick.currency, pick.priceBasis)}</dd>
           </div>
-          <div>
-            <dt>Availability</dt>
+          <div className="cse-live-pick-date">
+            <dt>Selected date</dt>
             <dd>
               {pick.availableForSelectedDate
                 ? formatDate(date)
                 : `Check exact times for ${formatDate(date)}`}
             </dd>
           </div>
-          <div>
+          <div className="cse-live-pick-start">
             <dt>Start</dt>
             <dd>{timesLabel(pick.startTimes)}</dd>
           </div>

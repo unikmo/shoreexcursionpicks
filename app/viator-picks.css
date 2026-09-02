@@ -42,9 +42,10 @@
   grid-template-columns: minmax(220px, 1fr);
   gap: 10px;
   padding: 14px;
-  border: 1px solid rgba(18, 46, 41, .13);
+  border: 1px solid rgba(18, 63, 55, .22);
   border-radius: 16px;
-  background: #f4f7f5;
+  background: #edf5f1;
+  box-shadow: 0 9px 24px rgba(20, 50, 44, .07);
 }
 
 .cse-live-picks-controls label {
@@ -64,13 +65,15 @@
   width: 100%;
   min-height: 42px;
   box-sizing: border-box;
-  border: 1px solid rgba(18, 46, 41, .16);
+  border: 1px solid rgba(18, 63, 55, .26);
   border-radius: 10px;
   background: #fff;
   color: #173b34;
   padding: 0 11px;
   font: inherit;
-  font-size: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .01em;
 }
 
 .cse-live-picks-status {
@@ -212,22 +215,20 @@
 
 .cse-live-pick-meta {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+  gap: 8px;
   margin: 20px 0 0;
-  border-top: 1px solid rgba(18, 46, 41, .10);
-  border-bottom: 1px solid rgba(18, 46, 41, .10);
 }
 
 .cse-live-pick-meta > div {
   display: grid;
-  grid-template-columns: 64px 1fr;
-  gap: 12px;
-  padding: 9px 0;
+  gap: 5px;
+  padding: 12px 13px;
+  border-radius: 12px;
 }
 
 .cse-live-pick-meta > div + div {
-  border-top: 1px solid rgba(18, 46, 41, .08);
+  border-top: 0;
 }
 
 .cse-live-pick-meta dt {
@@ -244,6 +245,46 @@
   font-size: 10px;
   font-weight: 750;
   line-height: 1.4;
+}
+
+.cse-live-pick-meta .cse-live-pick-price {
+  background: #173f37;
+}
+
+.cse-live-pick-meta .cse-live-pick-price dt {
+  color: rgba(255, 255, 255, .68);
+}
+
+.cse-live-pick-meta .cse-live-pick-price dd {
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(18px, 2vw, 23px);
+  font-weight: 600;
+  letter-spacing: -.025em;
+  line-height: 1.1;
+}
+
+.cse-live-pick-meta .cse-live-pick-date {
+  background: #f4ead1;
+}
+
+.cse-live-pick-meta .cse-live-pick-date dt {
+  color: #786842;
+}
+
+.cse-live-pick-meta .cse-live-pick-date dd {
+  color: #3f3a28;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.cse-live-pick-meta .cse-live-pick-start {
+  grid-column: 1 / -1;
+  grid-template-columns: 64px 1fr;
+  gap: 12px;
+  padding: 9px 2px;
+  border-radius: 0;
+  border-bottom: 1px solid rgba(18, 46, 41, .10);
 }
 
 .cse-live-pick-footer {
@@ -349,6 +390,10 @@
 
   .cse-live-pick-card h3 {
     font-size: 24px;
+  }
+
+  .cse-live-pick-meta {
+    grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
   }
 
   .cse-live-pick-footer {
