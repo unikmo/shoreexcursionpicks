@@ -1,4 +1,5 @@
-import type { Activity, Port } from "../ports/port-data";
+import type { Port } from "../ports/port-data";
+import { getCuratedViatorSet, type CuratedViatorSlot } from "../ports/viator-curation";
 
 const VIATOR_BASE_URL = "https://api.viator.com/partner";
 const CACHE_SECONDS = 60 * 60;
@@ -11,14 +12,15 @@ export type ViatorResolvedPick = {
   imageUrl: string | null;
   productUrl: string;
   fromPrice: number | null;
-  currency: string;
+  currency: string | null;
+  priceBasis: string | null;
   rating: number | null;
   reviewCount: number | null;
   startTimes: string[];
   freeCancellation: boolean;
 };
 
-type ViatorSearchProduct = {
+type ViatorProduct = {
   productCode?: string;
   title?: string;
   description?: string;
@@ -30,20 +32,21 @@ type ViatorSearchProduct = {
     totalReviews?: number;
     combinedAverageRating?: number;
   };
-  pricing?: {
-    summary?: {
-      fromPrice?: number;
-    };
-    currency?: string;
-  };
   productUrl?: string;
   flags?: string[];
+};
+
+type ScheduleResult = {
+  available: boolean;
+  fromPrice: number | null;
+  currency: string | null;
+  priceBasis: string | null;
+  startTimes: string[];
 };
 
 function headers(apiKey: string) {
   return {
     "Accept-Language": "en-US",
-    "Content-Type": "application/json",
     Accept: "application/json;version=2.0",
     "exp-api-key": apiKey,
   };
@@ -53,73 +56,7 @@ function cleanText(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
-function tokens(value: string) {
-  const ignored = new Set([
-    "and",
-    "the",
-    "with",
-    "from",
-    "tour",
-    "trip",
-    "day",
-    "island",
-    "private",
-    "visit",
-    "excursion",
-  ]);
-
-  return cleanText(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, " ")
-    .split(/\s+/)
-    .filter((token) => token.length > 2 && !ignored.has(token));
-}
-
-function extractProducts(payload: unknown): ViatorSearchProduct[] {
-  if (!payload || typeof payload !== "object") return [];
-  const data = payload as Record<string, unknown>;
-
-  if (Array.isArray(data.products)) return data.products as ViatorSearchProduct[];
-
-  if (data.products && typeof data.products === "object") {
-    const productsObject = data.products as Record<string, unknown>;
-    if (Array.isArray(productsObject.results)) return productsObject.results as ViatorSearchProduct[];
-  }
-
-  if (Array.isArray(data.searchResults)) {
-    for (const entry of data.searchResults as Array<Record<string, unknown>>) {
-      if (entry.searchType === "PRODUCTS" && Array.isArray(entry.results)) {
-        return entry.results as ViatorSearchProduct[];
-      }
-    }
-  }
-
-  if (Array.isArray(data.results)) return data.results as ViatorSearchProduct[];
-  return [];
-}
-
-function productScore(product: ViatorSearchProduct, activity: Activity) {
-  const title = (product.title ?? "").toLowerCase();
-  const description = (product.description ?? "").toLowerCase();
-  const wanted = [...new Set(tokens(`${activity.title} ${activity.search}`))];
-
-  let score = 0;
-  for (const token of wanted) {
-    if (title.includes(token)) score += 5;
-    else if (description.includes(token)) score += 1.5;
-  }
-
-  const rating = product.reviews?.combinedAverageRating ?? 0;
-  const reviews = product.reviews?.totalReviews ?? 0;
-  score += Math.max(0, rating - 4) * 1.5;
-  score += Math.min(Math.log10(reviews + 1), 3) * 0.45;
-  if (product.flags?.includes("FREE_CANCELLATION")) score += 0.2;
-  if (product.flags?.includes("LIKELY_TO_SELL_OUT")) score += 0.15;
-
-  return score;
-}
-
-function pickImage(product: ViatorSearchProduct) {
+function pickImage(product: ViatorProduct) {
   const image = product.images?.find((candidate) => candidate.isCover) ?? product.images?.[0];
   if (!image?.variants?.length) return null;
 
@@ -142,147 +79,239 @@ function safeProductUrl(value: string | undefined) {
   }
 }
 
-async function searchActivity(
-  apiKey: string,
-  port: Pick<Port, "name" | "searchName">,
-  activity: Activity,
-  date: string,
-  currency: string,
-) {
-  const response = await fetch(`${VIATOR_BASE_URL}/search/freetext`, {
-    method: "POST",
-    headers: headers(apiKey),
-    body: JSON.stringify({
-      searchTerm: `${activity.search} in ${port.searchName || port.name}`,
-      productFiltering: {
-        dateRange: { from: date, to: date },
-        includeAutomaticTranslations: true,
-      },
-      productSorting: { sort: "DEFAULT" },
-      searchTypes: [
-        {
-          searchType: "PRODUCTS",
-          pagination: { start: 1, count: 8 },
-        },
-      ],
-      currency,
-    }),
-    next: { revalidate: CACHE_SECONDS },
-  });
-
-  if (response.status === 401) {
-    throw new Error("VIATOR_KEY_NOT_ACTIVE");
-  }
-  if (!response.ok) {
-    throw new Error(`VIATOR_SEARCH_${response.status}`);
-  }
-
-  const products = extractProducts(await response.json());
-  return products
-    .filter((product) => Boolean(product.productCode && safeProductUrl(product.productUrl)))
-    .sort((a, b) => productScore(b, activity) - productScore(a, activity));
-}
-
-const weekdayNames = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
-
 function dateInRange(date: string, start?: string, end?: string) {
   if (start && date < start) return false;
   if (end && date > end) return false;
   return true;
 }
 
-function extractStartTimes(payload: unknown, date: string) {
-  if (!payload || typeof payload !== "object") return [] as string[];
+const weekdayNames = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+
+function retailPrice(detail: Record<string, unknown>, travelDate: string) {
+  const price = detail.price && typeof detail.price === "object" ? (detail.price as Record<string, unknown>) : null;
+  if (!price) return null;
+
+  const original = price.original && typeof price.original === "object"
+    ? (price.original as Record<string, unknown>)
+    : null;
+  const special = price.special && typeof price.special === "object"
+    ? (price.special as Record<string, unknown>)
+    : null;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const specialPrice = special?.recommendedRetailPrice;
+  const specialApplies =
+    typeof specialPrice === "number" &&
+    dateInRange(
+      today,
+      typeof special.offerStartDate === "string" ? special.offerStartDate : undefined,
+      typeof special.offerEndDate === "string" ? special.offerEndDate : undefined,
+    ) &&
+    dateInRange(
+      travelDate,
+      typeof special.travelStartDate === "string" ? special.travelStartDate : undefined,
+      typeof special.travelEndDate === "string" ? special.travelEndDate : undefined,
+    );
+
+  if (specialApplies) return specialPrice as number;
+  return typeof original?.recommendedRetailPrice === "number" ? original.recommendedRetailPrice : null;
+}
+
+function priceForDate(details: Array<Record<string, unknown>>, travelDate: string) {
+  const candidates = details.flatMap((detail) => {
+    const value = retailPrice(detail, travelDate);
+    if (value == null) return [];
+
+    return [{
+      value,
+      packageType: typeof detail.pricingPackageType === "string" ? detail.pricingPackageType : "",
+      ageBand: typeof detail.ageBand === "string" ? detail.ageBand : "",
+      unitType: typeof detail.unitType === "string" ? detail.unitType : "",
+      minTravelers: typeof detail.minTravelers === "number" ? detail.minTravelers : 1,
+      maxTravelers: typeof detail.maxTravelers === "number" ? detail.maxTravelers : Number.POSITIVE_INFINITY,
+    }];
+  });
+
+  const perPerson = candidates.filter(
+    (candidate) =>
+      candidate.packageType === "PER_PERSON" &&
+      (!candidate.ageBand || candidate.ageBand === "ADULT" || candidate.ageBand === "TRAVELER"),
+  );
+
+  if (perPerson.length) {
+    const bookableForTwo = perPerson.filter(
+      (candidate) => candidate.minTravelers <= 2 && candidate.maxTravelers >= 2,
+    );
+    const pool = bookableForTwo.length
+      ? bookableForTwo
+      : perPerson.filter(
+          (candidate) => candidate.minTravelers === Math.min(...perPerson.map((item) => item.minTravelers)),
+        );
+
+    return {
+      value: Math.min(...pool.map((candidate) => candidate.value)),
+      basis: "per person",
+    };
+  }
+
+  const unit = candidates.filter((candidate) => candidate.packageType === "UNIT");
+  if (unit.length) {
+    const cheapest = unit.reduce((best, candidate) => (candidate.value < best.value ? candidate : best));
+    return {
+      value: cheapest.value,
+      basis: cheapest.unitType ? `per ${cheapest.unitType.toLowerCase()}` : "per group",
+    };
+  }
+
+  return null;
+}
+
+function analyzeSchedule(payload: unknown, date: string): ScheduleResult {
+  if (!payload || typeof payload !== "object") {
+    return { available: false, fromPrice: null, currency: null, priceBasis: null, startTimes: [] };
+  }
+
   const data = payload as Record<string, unknown>;
-  if (!Array.isArray(data.bookableItems)) return [] as string[];
+  const currency = typeof data.currency === "string" ? data.currency : null;
+  const summary = data.summary && typeof data.summary === "object" ? (data.summary as Record<string, unknown>) : null;
+  const summaryFromPrice = typeof summary?.fromPrice === "number" ? summary.fromPrice : null;
+  const bookableItems = Array.isArray(data.bookableItems)
+    ? (data.bookableItems as Array<Record<string, unknown>>)
+    : [];
 
   const weekday = weekdayNames[new Date(`${date}T12:00:00Z`).getUTCDay()];
-  const times = new Set<string>();
+  const startTimes = new Set<string>();
+  const applicablePricing: Array<Record<string, unknown>> = [];
+  let available = false;
 
-  for (const rawItem of data.bookableItems as Array<Record<string, unknown>>) {
-    if (!Array.isArray(rawItem.seasons)) continue;
+  for (const item of bookableItems) {
+    if (!Array.isArray(item.seasons)) continue;
 
-    for (const rawSeason of rawItem.seasons as Array<Record<string, unknown>>) {
-      const startDate = typeof rawSeason.startDate === "string" ? rawSeason.startDate : undefined;
-      const endDate = typeof rawSeason.endDate === "string" ? rawSeason.endDate : undefined;
-      if (!dateInRange(date, startDate, endDate) || !Array.isArray(rawSeason.pricingRecords)) continue;
+    for (const season of item.seasons as Array<Record<string, unknown>>) {
+      const startDate = typeof season.startDate === "string" ? season.startDate : undefined;
+      const endDate = typeof season.endDate === "string" ? season.endDate : undefined;
+      if (!dateInRange(date, startDate, endDate) || !Array.isArray(season.pricingRecords)) continue;
 
-      for (const rawRecord of rawSeason.pricingRecords as Array<Record<string, unknown>>) {
-        const days = Array.isArray(rawRecord.daysOfWeek) ? (rawRecord.daysOfWeek as string[]) : [];
+      for (const record of season.pricingRecords as Array<Record<string, unknown>>) {
+        const days = Array.isArray(record.daysOfWeek) ? (record.daysOfWeek as string[]) : [];
         if (days.length && !days.includes(weekday)) continue;
-        if (!Array.isArray(rawRecord.timedEntries)) continue;
 
-        for (const rawEntry of rawRecord.timedEntries as Array<Record<string, unknown>>) {
-          const time = typeof rawEntry.startTime === "string" ? rawEntry.startTime : null;
-          if (!time) continue;
-          const unavailable = Array.isArray(rawEntry.unavailableDates)
-            ? (rawEntry.unavailableDates as Array<Record<string, unknown>>)
-            : [];
-          const unavailableOnDate = unavailable.some((entry) => entry.date === date);
-          if (!unavailableOnDate) times.add(time);
+        const timedEntries = Array.isArray(record.timedEntries)
+          ? (record.timedEntries as Array<Record<string, unknown>>)
+          : [];
+
+        if (timedEntries.length) {
+          let validTimedEntry = false;
+          for (const entry of timedEntries) {
+            const unavailable = Array.isArray(entry.unavailableDates)
+              ? (entry.unavailableDates as Array<Record<string, unknown>>)
+              : [];
+            const unavailableOnDate = unavailable.some((unavailableDate) => unavailableDate.date === date);
+            if (unavailableOnDate) continue;
+
+            validTimedEntry = true;
+            if (typeof entry.startTime === "string" && entry.startTime) startTimes.add(entry.startTime);
+          }
+          if (!validTimedEntry) continue;
+        }
+
+        available = true;
+        if (Array.isArray(record.pricingDetails)) {
+          applicablePricing.push(...(record.pricingDetails as Array<Record<string, unknown>>));
         }
       }
     }
   }
 
-  return [...times].sort();
+  const datedPrice = priceForDate(applicablePricing, date);
+  return {
+    available,
+    fromPrice: datedPrice?.value ?? (available ? summaryFromPrice : null),
+    currency,
+    priceBasis: datedPrice?.basis ?? (summaryFromPrice != null ? "per person" : null),
+    startTimes: [...startTimes].sort(),
+  };
 }
 
-async function fetchStartTimes(apiKey: string, productCode: string, date: string) {
+async function fetchProduct(apiKey: string, productCode: string, portSlug: string) {
+  const url = new URL(`${VIATOR_BASE_URL}/products/${encodeURIComponent(productCode)}`);
+  url.searchParams.set("campaign-value", `shoreexcursions-${portSlug}`);
+
+  const response = await fetch(url, {
+    headers: headers(apiKey),
+    next: { revalidate: CACHE_SECONDS },
+  });
+
+  if (response.status === 401) throw new Error("VIATOR_KEY_NOT_ACTIVE");
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`VIATOR_PRODUCT_${response.status}`);
+  return (await response.json()) as ViatorProduct;
+}
+
+async function fetchSchedule(apiKey: string, productCode: string, date: string) {
   const response = await fetch(`${VIATOR_BASE_URL}/availability/schedules/${encodeURIComponent(productCode)}`, {
     headers: headers(apiKey),
     next: { revalidate: CACHE_SECONDS },
   });
 
   if (response.status === 401) throw new Error("VIATOR_KEY_NOT_ACTIVE");
-  if (!response.ok) return [];
-  return extractStartTimes(await response.json(), date);
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`VIATOR_SCHEDULE_${response.status}`);
+  return analyzeSchedule(await response.json(), date);
 }
 
-export async function resolveViatorPicks(
-  port: Port,
+async function resolveCuratedSlot(
+  apiKey: string,
+  portSlug: string,
+  slot: CuratedViatorSlot,
   date: string,
-  currency = "USD",
-): Promise<ViatorResolvedPick[]> {
+): Promise<ViatorResolvedPick | null> {
+  for (const productCode of slot.productCodes) {
+    const [product, schedule] = await Promise.all([
+      fetchProduct(apiKey, productCode, portSlug),
+      fetchSchedule(apiKey, productCode, date),
+    ]);
+
+    if (!product || !schedule?.available) continue;
+
+    const exactProductCode = product.productCode ?? productCode;
+    const productUrl = safeProductUrl(product.productUrl);
+    if (!product.title || !productUrl || exactProductCode !== productCode) continue;
+
+    return {
+      conceptTitle: slot.conceptTitle,
+      productCode,
+      title: cleanText(product.title),
+      description: cleanText(product.description ?? slot.conceptTitle),
+      imageUrl: pickImage(product),
+      productUrl,
+      fromPrice: schedule.fromPrice,
+      currency: schedule.currency,
+      priceBasis: schedule.priceBasis,
+      rating: product.reviews?.combinedAverageRating ?? null,
+      reviewCount: product.reviews?.totalReviews ?? null,
+      startTimes: schedule.startTimes,
+      freeCancellation: Boolean(product.flags?.includes("FREE_CANCELLATION")),
+    };
+  }
+
+  return null;
+}
+
+export async function resolveViatorPicks(port: Port, date: string): Promise<ViatorResolvedPick[]> {
   const apiKey = process.env.VIATOR_API_KEY;
   if (!apiKey) throw new Error("VIATOR_NOT_CONFIGURED");
 
-  const concepts = [...port.topActivities, ...port.nicheActivities];
-  const searches = await Promise.all(concepts.map((activity) => searchActivity(apiKey, port, activity, date, currency)));
+  const curatedSet = getCuratedViatorSet(port.slug);
+  if (!curatedSet) throw new Error("VIATOR_CURATION_NOT_READY");
 
-  const selected: Array<{ activity: Activity; product: ViatorSearchProduct }> = [];
-  const usedCodes = new Set<string>();
-
-  searches.forEach((products, index) => {
-    const product = products.find((candidate) => candidate.productCode && !usedCodes.has(candidate.productCode));
-    if (!product?.productCode) return;
-    usedCodes.add(product.productCode);
-    selected.push({ activity: concepts[index], product });
-  });
-
-  const startTimes = await Promise.all(
-    selected.map(({ product }) => fetchStartTimes(apiKey, product.productCode as string, date)),
+  const resolved = await Promise.all(
+    curatedSet.map((slot) => resolveCuratedSlot(apiKey, port.slug, slot, date)),
   );
 
-  return selected.flatMap(({ activity, product }, index) => {
-    const productUrl = safeProductUrl(product.productUrl);
-    if (!product.productCode || !productUrl || !product.title) return [];
+  const picks = resolved.filter((pick): pick is ViatorResolvedPick => pick !== null);
+  const uniqueCodes = new Set(picks.map((pick) => pick.productCode));
+  if (uniqueCodes.size !== picks.length) throw new Error("VIATOR_DUPLICATE_CURATED_PRODUCT");
 
-    return [
-      {
-        conceptTitle: activity.title,
-        productCode: product.productCode,
-        title: cleanText(product.title),
-        description: cleanText(product.description ?? activity.note),
-        imageUrl: pickImage(product),
-        productUrl,
-        fromPrice: product.pricing?.summary?.fromPrice ?? null,
-        currency: product.pricing?.currency ?? currency,
-        rating: product.reviews?.combinedAverageRating ?? null,
-        reviewCount: product.reviews?.totalReviews ?? null,
-        startTimes: startTimes[index],
-        freeCancellation: Boolean(product.flags?.includes("FREE_CANCELLATION")),
-      },
-    ];
-  });
+  return picks;
 }
