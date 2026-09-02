@@ -9,6 +9,7 @@ import { getPortGuideDetail } from "../port-guide-data";
 import { getPortHistory } from "../port-history-data";
 import { getActivityImage, getPortImage } from "../port-images";
 import { getRegionSlug } from "../region-data";
+import { getCuratedViatorSet } from "../viator-curation";
 import type { Port } from "../port-data";
 
 type PortPageProps = { params: Promise<{ slug: string }> };
@@ -63,12 +64,13 @@ export default async function PortPage({ params }: PortPageProps) {
   const history = getPortHistory(port.slug);
 
   // Product promise: exactly three primary activity concepts + exactly three alternatives.
-  // The live client resolves each concept to one exact Viator product for the selected port date.
+  // Only locked product codes in viator-curation.ts can become bookable cards.
   const topActivities = port.topActivities.slice(0, 3);
   const alternativeActivities = port.nicheActivities.slice(0, 3);
   const allActivities = [...topActivities, ...alternativeActivities];
+  const curatedSet = getCuratedViatorSet(port.slug);
   const liveConcepts = allActivities.map((item, index) => ({
-    title: item.title,
+    title: curatedSet?.[index]?.conceptTitle ?? item.title,
     note: item.note,
     placeholderImage: getActivityImage(port, item, index).src,
     group: index < 3 ? ("top" as const) : ("alternative" as const),
@@ -98,7 +100,7 @@ export default async function PortPage({ params }: PortPageProps) {
     itemListElement: allActivities.map((item, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      name: item.title,
+      name: curatedSet?.[index]?.conceptTitle ?? item.title,
       description: item.note,
       url: `${siteUrl}/ports/${port.slug}#picks`,
     })),
@@ -142,7 +144,7 @@ export default async function PortPage({ params }: PortPageProps) {
   const faqItems = [
     {
       question: `What is the best shore excursion in ${port.name}?`,
-      answer: `Our first curated theme is ${topActivities[0].title}. ${topActivities[0].note} Select your port date to see the exact current Viator excursion, price and start times.`,
+      answer: `Our first curated theme is ${curatedSet?.[0]?.conceptTitle ?? topActivities[0].title}. ${topActivities[0].note} Select your port date to see the exact current Viator excursion, price and start times.`,
     },
     {
       question: `What should cruise passengers know about ${port.name}?`,
