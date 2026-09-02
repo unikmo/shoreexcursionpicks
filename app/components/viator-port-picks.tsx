@@ -45,7 +45,7 @@ function upcomingTravelDate(days = 30) {
 }
 
 function formatPrice(value: number | null, currency: string | null, basis: string | null) {
-  if (value == null || !currency) return "Price on Viator";
+  if (value == null || !currency) return "Check live price";
   const rendered = new Intl.NumberFormat(undefined, {
     style: "currency",
     currency,
@@ -149,6 +149,7 @@ function LiveCard({ pick, date, rank }: { pick: LivePick; date: string; rank: nu
 
 export default function ViatorPortPicks({ portSlug, portName, concepts }: Props) {
   const [date, setDate] = useState("");
+  const [travelers, setTravelers] = useState(2);
   const [picks, setPicks] = useState<LivePick[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -172,7 +173,7 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
       setMessage(null);
 
       try {
-        const params = new URLSearchParams({ slug: portSlug, date });
+        const params = new URLSearchParams({ slug: portSlug, date, travelers: String(travelers) });
         const response = await fetch(`/api/viator-picks?${params.toString()}`, {
           signal: controller.signal,
           headers: { Accept: "application/json" },
@@ -208,7 +209,7 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
 
     load();
     return () => controller.abort();
-  }, [date, portSlug]);
+  }, [date, portSlug, travelers]);
 
   const top = picks?.slice(0, 3) ?? null;
   const alternatives = picks?.slice(3, 6) ?? null;
@@ -224,7 +225,7 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
           </p>
         </div>
 
-        <div className="cse-live-picks-controls" aria-label="Excursion date">
+        <div className="cse-live-picks-controls" aria-label="Excursion date and travelers">
           <label>
             <span>When are you in {portName}?</span>
             <input
@@ -235,11 +236,19 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
               onChange={(event) => setDate(event.target.value)}
             />
           </label>
+          <label>
+            <span>Adult travelers</span>
+            <select value={travelers} onChange={(event) => setTravelers(Number(event.target.value))}>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((count) => (
+                <option key={count} value={count}>{count}</option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
       {message ? <div className="cse-live-picks-status" role="status">{message}</div> : null}
-      {loading ? <div className="cse-live-picks-status" role="status">Updating prices and availability for {formatDate(date)}…</div> : null}
+      {loading ? <div className="cse-live-picks-status" role="status">Updating exact products and live pricing for {formatDate(date)}…</div> : null}
 
       <div className="cse-live-picks-heading">
         <span>01</span>

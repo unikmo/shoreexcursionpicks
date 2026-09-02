@@ -47,6 +47,32 @@ const curatedViatorProducts: Record<string, CuratedViatorSet> = {
       productCodes: ["236968P29"],
     },
   ],
+  barcelona: [
+    {
+      conceptTitle: "Sagrada Família & Gaudí highlights",
+      productCodes: ["16168P10", "3731P214", "9866P20"],
+    },
+    {
+      conceptTitle: "Gothic Quarter food walk",
+      productCodes: ["16168P1", "6172P11", "25359P4"],
+    },
+    {
+      conceptTitle: "Private Barcelona highlights drive",
+      productCodes: ["2148SP001LF", "5689P12", "383905P8"],
+    },
+    {
+      conceptTitle: "Montserrat monastery escape",
+      productCodes: ["5716P4", "5716GOLFWINE"],
+    },
+    {
+      conceptTitle: "Modernist architecture beyond Gaudí",
+      productCodes: ["17377P55", "7173P9", "211674P1"],
+    },
+    {
+      conceptTitle: "Barcelona vermouth workshop",
+      productCodes: ["361486P2", "3394P17", "224689P4"],
+    },
+  ],
 };
 
 export function getCuratedViatorSet(portSlug: string) {

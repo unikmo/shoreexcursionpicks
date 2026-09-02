@@ -46,6 +46,12 @@ type ScheduleResult = {
   startTimes: string[];
 };
 
+type LivePriceResult = {
+  available: boolean;
+  totalPrice: number | null;
+  currency: string | null;
+};
+
 function headers(apiKey: string) {
   return {
     "Accept-Language": "en-US",
@@ -262,18 +268,79 @@ async function fetchSchedule(apiKey: string, productCode: string, date: string) 
   return analyzeSchedule(await response.json(), date);
 }
 
+function moneyValue(value: unknown) {
+  if (!value || typeof value !== "object") return null;
+  const amount = (value as Record<string, unknown>).recommendedRetailPrice;
+  return typeof amount === "number" ? amount : null;
+}
+
+function analyzeLivePrice(payload: unknown): LivePriceResult {
+  if (!payload || typeof payload !== "object") {
+    return { available: false, totalPrice: null, currency: null };
+  }
+
+  const data = payload as Record<string, unknown>;
+  const currency = typeof data.currency === "string" ? data.currency : null;
+  const items = Array.isArray(data.bookableItems)
+    ? (data.bookableItems as Array<Record<string, unknown>>)
+    : [];
+  const availableItems = items.filter((item) => item.available !== false);
+  const prices = availableItems
+    .map((item) => moneyValue(item.totalPrice))
+    .filter((value): value is number => value != null);
+
+  return {
+    available: availableItems.length > 0,
+    totalPrice: prices.length ? Math.min(...prices) : null,
+    currency,
+  };
+}
+
+async function fetchLivePrice(
+  apiKey: string,
+  productCode: string,
+  date: string,
+  travelers: number,
+): Promise<LivePriceResult> {
+  const response = await fetch(`${VIATOR_BASE_URL}/availability/check`, {
+    method: "POST",
+    headers: {
+      ...headers(apiKey),
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+    body: JSON.stringify({
+      productCode,
+      travelDate: date,
+      currency: "USD",
+      paxMix: [{ ageBand: "ADULT", numberOfTravelers: travelers }],
+    }),
+  });
+
+  if (response.status === 401) throw new Error("VIATOR_KEY_NOT_ACTIVE");
+  // Basic affiliate access may not include real-time pricing. In that case we
+  // deliberately return no price rather than presenting a bulk-schedule guess.
+  if (response.status === 403 || response.status === 404) {
+    return { available: false, totalPrice: null, currency: null };
+  }
+  if (!response.ok) return { available: false, totalPrice: null, currency: null };
+  return analyzeLivePrice(await response.json());
+}
+
 async function resolveCuratedSlot(
   apiKey: string,
   portSlug: string,
   slot: CuratedViatorSlot,
   date: string,
+  travelers: number,
 ): Promise<ViatorResolvedPick | null> {
   let fallback: ViatorResolvedPick | null = null;
 
   for (const productCode of slot.productCodes) {
-    const [product, schedule] = await Promise.all([
+    const [product, schedule, livePrice] = await Promise.all([
       fetchProduct(apiKey, productCode, portSlug),
       fetchSchedule(apiKey, productCode, date),
+      fetchLivePrice(apiKey, productCode, date, travelers),
     ]);
 
     if (!product || !schedule) continue;
@@ -288,10 +355,12 @@ async function resolveCuratedSlot(
       title: cleanText(product.title),
       description: cleanText(product.description ?? slot.conceptTitle),
       imageUrl: pickImage(product),
-      productUrl: viatorAffiliateUrl(productUrl),
-      fromPrice: schedule.fromPrice,
-      currency: schedule.currency,
-      priceBasis: schedule.priceBasis,
+      productUrl: viatorAffiliateUrl(productUrl, `shoreexcursions-${portSlug}`),
+      fromPrice: livePrice.totalPrice,
+      currency: livePrice.currency,
+      priceBasis: livePrice.totalPrice != null
+        ? `total for ${travelers} adult${travelers === 1 ? "" : "s"}`
+        : null,
       rating: product.reviews?.combinedAverageRating ?? null,
       reviewCount: product.reviews?.totalReviews ?? null,
       startTimes: schedule.startTimes,
@@ -306,7 +375,11 @@ async function resolveCuratedSlot(
   return fallback;
 }
 
-export async function resolveViatorPicks(port: Port, date: string): Promise<ViatorResolvedPick[]> {
+export async function resolveViatorPicks(
+  port: Port,
+  date: string,
+  travelers: number,
+): Promise<ViatorResolvedPick[]> {
   const apiKey = process.env.VIATOR_API_KEY;
   if (!apiKey) throw new Error("VIATOR_NOT_CONFIGURED");
 
@@ -314,7 +387,7 @@ export async function resolveViatorPicks(port: Port, date: string): Promise<Viat
   if (!curatedSet) throw new Error("VIATOR_CURATION_NOT_READY");
 
   const resolved = await Promise.all(
-    curatedSet.map((slot) => resolveCuratedSlot(apiKey, port.slug, slot, date)),
+    curatedSet.map((slot) => resolveCuratedSlot(apiKey, port.slug, slot, date, travelers)),
   );
 
   const picks = resolved.filter((pick): pick is ViatorResolvedPick => pick !== null);

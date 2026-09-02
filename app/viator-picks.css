@@ -39,7 +39,7 @@
 .cse-live-picks-controls {
   min-width: 260px;
   display: grid;
-  grid-template-columns: minmax(220px, 1fr);
+  grid-template-columns: minmax(180px, 1fr) 96px;
   gap: 10px;
   padding: 14px;
   border: 1px solid rgba(18, 63, 55, .22);
@@ -61,7 +61,8 @@
   text-transform: uppercase;
 }
 
-.cse-live-picks-controls input {
+.cse-live-picks-controls input,
+.cse-live-picks-controls select {
   width: 100%;
   min-height: 42px;
   box-sizing: border-box;

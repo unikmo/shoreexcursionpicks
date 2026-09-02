@@ -13,6 +13,7 @@ function todayIso() {
 export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get("slug")?.trim() ?? "";
   const date = request.nextUrl.searchParams.get("date")?.trim() ?? "";
+  const travelers = Number.parseInt(request.nextUrl.searchParams.get("travelers") ?? "2", 10);
 
   const port = getPort(slug);
   if (!port) {
@@ -23,8 +24,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Choose a valid future port date." }, { status: 400 });
   }
 
+  if (!Number.isInteger(travelers) || travelers < 1 || travelers > 8) {
+    return NextResponse.json({ error: "Choose between 1 and 8 adult travelers." }, { status: 400 });
+  }
+
   try {
-    const picks = await resolveViatorPicks(port, date);
+    const picks = await resolveViatorPicks(port, date, travelers);
 
     if (picks.length !== 6) {
       return NextResponse.json(
@@ -41,6 +46,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       port: { slug: port.slug, name: port.name },
       date,
+      travelers,
       picks,
     });
   } catch (error) {
