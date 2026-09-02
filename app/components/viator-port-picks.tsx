@@ -17,7 +17,8 @@ type LivePick = {
   imageUrl: string | null;
   productUrl: string;
   fromPrice: number | null;
-  currency: string;
+  currency: string | null;
+  priceBasis: string | null;
   rating: number | null;
   reviewCount: number | null;
   startTimes: string[];
@@ -30,21 +31,20 @@ type Props = {
   concepts: EditorialConcept[];
 };
 
-const currencies = ["USD", "EUR", "GBP", "CAD", "AUD"];
-
 function localToday() {
   const now = new Date();
   const offset = now.getTimezoneOffset();
   return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
 }
 
-function formatPrice(value: number | null, currency: string) {
-  if (value == null) return "Price on Viator";
-  return `From ${new Intl.NumberFormat(undefined, {
+function formatPrice(value: number | null, currency: string | null, basis: string | null) {
+  if (value == null || !currency) return "Price on Viator";
+  const rendered = new Intl.NumberFormat(undefined, {
     style: "currency",
     currency,
     maximumFractionDigits: value % 1 === 0 ? 0 : 2,
-  }).format(value)}`;
+  }).format(value);
+  return `From ${rendered}${basis ? ` ${basis}` : ""}`;
 }
 
 function formatDate(value: string) {
@@ -73,7 +73,7 @@ function PlaceholderCard({ concept, rank }: { concept: EditorialConcept; rank: n
       <div className="cse-live-pick-body">
         <div className="cse-live-pick-kicker">
           <span>{rank < 4 ? `Pick ${rank}` : "Alternative"}</span>
-          <span>Choose a date for live details</span>
+          <span>Choose a date for current details</span>
         </div>
         <h3>{concept.title}</h3>
         <p>{concept.note}</p>
@@ -110,7 +110,7 @@ function LiveCard({ pick, date, rank }: { pick: LivePick; date: string; rank: nu
         <dl className="cse-live-pick-meta">
           <div>
             <dt>Price</dt>
-            <dd>{formatPrice(pick.fromPrice, pick.currency)}</dd>
+            <dd>{formatPrice(pick.fromPrice, pick.currency, pick.priceBasis)}</dd>
           </div>
           <div>
             <dt>Date</dt>
@@ -138,7 +138,6 @@ function LiveCard({ pick, date, rank }: { pick: LivePick; date: string; rank: nu
 
 export default function ViatorPortPicks({ portSlug, portName, concepts }: Props) {
   const [date, setDate] = useState("");
-  const [currency, setCurrency] = useState("USD");
   const [picks, setPicks] = useState<LivePick[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -159,7 +158,7 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
       setPicks(null);
 
       try {
-        const params = new URLSearchParams({ slug: portSlug, date, currency });
+        const params = new URLSearchParams({ slug: portSlug, date });
         const response = await fetch(`/api/viator-picks?${params.toString()}`, {
           signal: controller.signal,
           headers: { Accept: "application/json" },
@@ -168,11 +167,13 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
 
         if (!response.ok) {
           if (data?.code === "VIATOR_KEY_NOT_ACTIVE") {
-            setMessage("Live Viator pricing is still activating. The six picks will appear here as soon as access is active.");
+            setMessage("Current Viator pricing is still activating. The six exact picks will appear here as soon as API access is active.");
+          } else if (data?.code === "VIATOR_CURATION_NOT_READY") {
+            setMessage("This port’s exact six products are still being curated. We won’t substitute generic Viator results.");
           } else if (data?.code === "INCOMPLETE_CURATED_SET") {
             setMessage("We could not verify all six exact excursions for this date. Try another date rather than showing you generic results.");
           } else {
-            setMessage(data?.error ?? "Live excursion details are temporarily unavailable.");
+            setMessage(data?.error ?? "Current excursion details are temporarily unavailable.");
           }
           return;
         }
@@ -185,7 +186,7 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
         setPicks(data.picks);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") return;
-        setMessage("Live excursion details are temporarily unavailable.");
+        setMessage("Current excursion details are temporarily unavailable.");
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
@@ -193,7 +194,7 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
 
     load();
     return () => controller.abort();
-  }, [currency, date, portSlug]);
+  }, [date, portSlug]);
 
   const top = picks?.slice(0, 3) ?? null;
   const alternatives = picks?.slice(3, 6) ?? null;
@@ -205,11 +206,11 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
           <p className="cse-eyebrow">Six, not sixty</p>
           <h2 id="live-picks-title">Your six curated {portName} excursions.</h2>
           <p>
-            Choose the day your ship is in port. We then show the exact excursion listing, live price and start times—not a generic activities page.
+            Choose the day your ship is in port. We then show the exact excursion listing, current price and start times—not a generic activities page.
           </p>
         </div>
 
-        <div className="cse-live-picks-controls" aria-label="Excursion date and currency">
+        <div className="cse-live-picks-controls" aria-label="Excursion date">
           <label>
             <span>When are you in {portName}?</span>
             <input
@@ -218,16 +219,6 @@ export default function ViatorPortPicks({ portSlug, portName, concepts }: Props)
               value={date}
               onChange={(event) => setDate(event.target.value)}
             />
-          </label>
-          <label>
-            <span>Currency</span>
-            <select value={currency} onChange={(event) => setCurrency(event.target.value)}>
-              {currencies.map((value) => (
-                <option value={value} key={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
           </label>
         </div>
       </div>
