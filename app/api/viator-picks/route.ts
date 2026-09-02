@@ -5,7 +5,6 @@ import { resolveViatorPicks } from "../../lib/viator-api";
 export const dynamic = "force-dynamic";
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const CURRENCIES = new Set(["USD", "EUR", "GBP", "CAD", "AUD"]);
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -14,8 +13,6 @@ function todayIso() {
 export async function GET(request: NextRequest) {
   const slug = request.nextUrl.searchParams.get("slug")?.trim() ?? "";
   const date = request.nextUrl.searchParams.get("date")?.trim() ?? "";
-  const requestedCurrency = request.nextUrl.searchParams.get("currency")?.toUpperCase() ?? "USD";
-  const currency = CURRENCIES.has(requestedCurrency) ? requestedCurrency : "USD";
 
   const port = getPort(slug);
   if (!port) {
@@ -27,12 +24,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const picks = await resolveViatorPicks(port, date, currency);
+    const picks = await resolveViatorPicks(port, date);
 
     if (picks.length !== 6) {
       return NextResponse.json(
         {
-          error: "Six exact products could not be resolved for this date.",
+          error: "Six exact curated products could not be verified for this date.",
           code: "INCOMPLETE_CURATED_SET",
           count: picks.length,
           picks,
@@ -44,7 +41,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       port: { slug: port.slug, name: port.name },
       date,
-      currency,
       picks,
     });
   } catch (error) {
@@ -64,8 +60,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (message === "VIATOR_CURATION_NOT_READY") {
+      return NextResponse.json(
+        {
+          error: "Exact curated Viator products are not ready for this port yet.",
+          code: message,
+        },
+        { status: 503 },
+      );
+    }
+
     return NextResponse.json(
-      { error: "Live excursion details are temporarily unavailable.", code: message },
+      { error: "Current excursion details are temporarily unavailable.", code: message },
       { status: 502 },
     );
   }
