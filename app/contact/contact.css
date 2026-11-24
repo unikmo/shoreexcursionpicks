@@ -1,0 +1,16 @@
+.cse-contact{max-width:680px;margin:0 auto;padding:56px 24px 72px}
+.cse-contact h1{margin:6px 0 12px;color:var(--cse-ink)}
+.cse-contact>p{color:var(--cse-muted);line-height:1.65}
+.cse-contact-form{display:grid;gap:16px;margin-top:24px;padding:26px;background:var(--cse-paper);border:1px solid var(--cse-line);border-radius:18px}
+.cse-contact-form label{display:grid;gap:6px;font-weight:700;font-size:.92rem;color:var(--cse-ink)}
+.cse-contact-form input,.cse-contact-form select,.cse-contact-form textarea{font:inherit;font-weight:400;color:var(--cse-ink);border:1px solid var(--cse-line);border-radius:10px;padding:10px 12px;background:#fff}
+.cse-contact-form input:focus,.cse-contact-form select:focus,.cse-contact-form textarea:focus{outline:2px solid var(--cse-teal);outline-offset:1px}
+.cse-contact-form button{justify-self:start;border:0;cursor:pointer;font:inherit}
+.cse-contact-form button:disabled{opacity:.6;cursor:not-allowed}
+.cse-contact-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.cse-contact-note{margin:0;font-size:.85rem;color:var(--cse-muted);line-height:1.5}
+.cse-contact-error{margin:0;color:#b42318;font-weight:700;font-size:.9rem}
+.cse-contact-sent{margin-top:24px;padding:26px;background:var(--cse-mint);border:1px solid var(--cse-line);border-radius:18px}
+.cse-contact-sent h2{margin:0 0 8px;color:var(--cse-ink)}
+.cse-contact-sent p{margin:0;color:var(--cse-muted);line-height:1.6}
+.cse-contact-sent a,.cse-contact>p a{color:var(--cse-teal-dark);font-weight:700}
