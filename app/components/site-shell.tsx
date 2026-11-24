@@ -23,7 +23,7 @@ export function SiteFooter() {
         <span className="cse-brand-mark">SEP</span>
         <span>Shore Excursion Picks</span>
       </div>
-      <p><Link href="/methodology">How we choose the picks</Link></p>
+      <p><Link href="/methodology">How we choose the picks</Link> · <Link href="/contact">Contact</Link></p>
       <p>We may earn a commission from qualifying bookings, at no extra cost to you.</p>
     </footer>
   );
